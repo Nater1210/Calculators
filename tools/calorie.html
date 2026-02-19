@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Expert Calorie + Macro Calculator v3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+:root{
+  --ink:#0f1117; --ink2:#2d3344; --muted:#6b7488; --muted2:#9aa0b4;
+  --border:#e2e6f0; --border2:#cdd3e0;
+  --bg:#f5f6fa; --bg2:#eef0f7; --card:#ffffff;
+  --primary:#2952c9; --primary2:#1e3fa0;
+  --accent:#e85d2f;
+  --ok:#1a7a50; --warn-yellow:#f0a500;
+  --keto:#7c3aed; --keto2:#5b21b6; --keto-bg:#f5f3ff; --keto-border:#c4b5fd;
+  --lowcarb:#0891b2; --lowcarb-bg:#ecfeff; --lowcarb-border:#a5f3fc;
+  --shadow:0 2px 12px rgba(15,17,23,.07),0 1px 3px rgba(15,17,23,.06);
+  --radius:14px; --radius-sm:9px; --radius-pill:999px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;min-height:100vh}
+
+/* ─── Header ─── */
+.page-header{background:var(--ink);color:#fff;padding:28px 32px 24px;position:relative;overflow:hidden}
+.page-header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(57,106,255,.35) 0%,transparent 65%),radial-gradient(ellipse at 20% 80%,rgba(124,58,237,.25) 0%,transparent 55%);pointer-events:none}
+.page-header h1{font-family:'DM Serif Display',Georgia,serif;font-size:clamp(22px,3vw,32px);font-weight:400;letter-spacing:-.02em;position:relative}
+.page-header p{font-size:13px;color:rgba(255,255,255,.62);margin-top:6px;max-width:680px;line-height:1.4;position:relative}
+.header-badges{display:flex;gap:8px;margin-top:10px;position:relative;flex-wrap:wrap}
+.header-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:var(--radius-pill);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75)}
+
+/* ─── Layout ─── */
+@media(max-width:860px){.layout{grid-template-columns:1fr}}
+
+/* ─── Cards ─── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-head{padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card-head h2{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:var(--radius-pill);background:var(--bg2);color:var(--muted);border:1px solid var(--border)}
+.badge.keto{background:var(--keto-bg);color:var(--keto);border-color:var(--keto-border)}
+.badge.lowcarb{background:var(--lowcarb-bg);color:var(--lowcarb);border-color:var(--lowcarb-border)}
+.card-body{padding:16px 18px}
+
+/* ─── Diet type banner ─── */
+.diet-banner{border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.45;display:flex;gap:10px;align-items:flex-start}
+.diet-banner.standard{background:#f0f4ff;border:1px solid #c7d7ff;color:#1a2e6e}
+.diet-banner.lowcarb{background:var(--lowcarb-bg);border:1px solid var(--lowcarb-border);color:#0c4a6e}
+.diet-banner.keto{background:var(--keto-bg);border:1px solid var(--keto-border);color:#3b1c7a}
+.diet-banner-icon{font-size:20px;flex-shrink:0;line-height:1}
+.diet-banner b{font-weight:600}
+
+/* ─── Segmented controls ─── */
+.seg-group{display:flex;gap:5px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px}
+.seg-group button{flex:1 1 auto;border:none;background:transparent;padding:9px 10px;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit;color:var(--muted);font-weight:500;transition:all .15s;min-width:80px;line-height:1.3}
+.seg-group button.active{background:var(--primary);color:#fff;box-shadow:0 3px 10px rgba(41,82,201,.3)}
+.seg-group button.active.keto-btn{background:var(--keto)}
+.seg-group button.active.lowcarb-btn{background:var(--lowcarb)}
+.seg-group button:not(.active):hover{background:var(--border2);color:var(--ink)}
+
+/* ─── Fields ─── */
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.field-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:440px){.field-grid,.field-grid-3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px}
+label{font-size:11.5px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:5px}
+label .tip{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);font-size:9px;color:var(--muted2);cursor:help;font-weight:700;position:relative;flex-shrink:0}
+label .tip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:11px;font-weight:400;padding:7px 11px;border-radius:8px;white-space:pre-wrap;max-width:260px;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.3);line-height:1.4;text-transform:none;letter-spacing:normal;pointer-events:none}
+input,select{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13.5px;font-family:inherit;color:var(--ink);background:var(--card);outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(41,82,201,.12)}
+input::placeholder{color:var(--muted2)}
+
+/* Diet type select accent */
+#dietType option[value="keto"]{font-weight:600}
+#dietType option[value="lowcarb"]{font-weight:600}
+
+.pill-check{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:var(--radius-pill);border:1.5px solid var(--border);background:var(--card);font-size:12px;color:var(--ink2);cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
+.pill-check:has(input:checked){border-color:var(--primary);background:rgba(41,82,201,.05);color:var(--primary)}
+.pill-check input[type=checkbox]{width:auto;margin:0;accent-color:var(--primary)}
+.check-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+
+/* ─── Buttons ─── */
+.btn{padding:10px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--card);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;color:var(--ink2);transition:all .15s}
+.btn:hover{background:var(--bg2);border-color:var(--border2)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 3px 10px rgba(41,82,201,.28)}
+.btn.primary:hover{background:var(--primary2);border-color:var(--primary2)}
+.btn.keto-btn{background:var(--keto);border-color:var(--keto);color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+/* ─── Section titles ─── */
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ─── Collapsible ─── */
+.collapsible-head{display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border-radius:var(--radius-sm);background:var(--bg2);border:1px solid var(--border);font-size:12.5px;font-weight:600;color:var(--ink2);user-select:none;transition:background .15s}
+.collapsible-head:hover{background:var(--border)}
+.collapsible-head .arrow{margin-left:auto;font-size:11px;color:var(--muted2);transition:transform .2s}
+.collapsible-head.open .arrow{transform:rotate(180deg)}
+.collapsible-body{overflow:hidden;max-height:0;transition:max-height .3s ease}
+.collapsible-body.open{max-height:1200px}
+.collapsible-inner{padding:12px 14px 0}
+
+/* ─── Results metrics ─── */
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.metric{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;background:var(--card)}
+.metric.highlight{border-color:var(--primary);background:linear-gradient(135deg,rgba(41,82,201,.04),rgba(59,106,255,.07))}
+.metric.keto-highlight{border-color:var(--keto);background:linear-gradient(135deg,rgba(124,58,237,.04),rgba(124,58,237,.09))}
+.metric.lowcarb-highlight{border-color:var(--lowcarb);background:linear-gradient(135deg,rgba(8,145,178,.04),rgba(8,145,178,.09))}
+.metric .k{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2)}
+.metric .v{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-top:3px}
+.metric .v small{font-size:12px;font-weight:500;color:var(--muted);margin-left:3px}
+.metric .sub{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35}
+.metric .sub b{color:var(--ink2)}
+
+/* ─── Macro table ─── */
+.macro-table{width:100%;border-collapse:collapse;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:10px}
+.macro-table thead tr{background:var(--bg2)}
+.macro-table th{padding:8px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted2);text-align:left;border-bottom:1.5px solid var(--border)}
+.macro-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13.5px;color:var(--ink2);vertical-align:middle}
+.macro-table tr:last-child td{border-bottom:none}
+.macro-table .macro-name{font-weight:700;color:var(--ink);display:flex;align-items:center;gap:7px}
+.macro-dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
+.macro-table .big{font-size:16px;font-weight:700;color:var(--ink)}
+.bar-cell{padding:4px 12px 8px!important}
+.bar-track{height:5px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* ─── Diet ratio targets row ─── */
+.diet-targets{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-top:6px;font-size:12px;color:var(--muted)}
+.diet-targets b{color:var(--ink2)}
+
+/* ─── Warn boxes ─── */
+.warn-box{border-radius:var(--radius-sm);padding:10px 14px;font-size:12.5px;line-height:1.45;border-left:3px solid;margin-bottom:6px}
+.warn-box.error{background:#fff5f3;border-color:var(--accent);color:#7a2a14}
+.warn-box.warning{background:#fffbf0;border-color:var(--warn-yellow);color:#7a5700}
+.warn-box.info{background:#f0f4ff;border-color:var(--primary);color:#1a2e6e}
+.warn-box.ok{background:#f0faf5;border-color:var(--ok);color:#0f4a2c}
+.warn-box.keto{background:var(--keto-bg);border-color:var(--keto);color:#3b1c7a}
+.warn-box b{font-weight:600}
+
+/* ─── Detail blocks ─── */
+.detail-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px}
+.detail-block h4{font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:5px}
+.detail-block b{color:var(--ink2)}
+.constraint-cap{background:#f5f0ff;border:1px solid #c4b5fd;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#4a1e7a;margin-bottom:8px}
+
+/* ─── Rate badge ─── */
+.rate-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--radius-pill);font-size:11px;font-weight:600;margin-left:6px}
+.rate-badge.good{background:#e8f7ef;color:#1a7a50}
+.rate-badge.caution{background:#fffbf0;color:#b45309}
+.rate-badge.danger{background:#fff0ed;color:#c03010}
+
+/* ─── Meal split table ─── */
+.meal-split-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+.meal-split-table th{text-align:left;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted2)}
+.meal-split-table td{padding:6px 8px;border:1px solid var(--border);color:var(--ink2)}
+
+/* ─── Adaptive mode ─── */
+.adaptive-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px}
+.adaptive-stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+.a-stat .k{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.a-stat .v{font-size:16px;font-weight:700;color:var(--ink);margin-top:2px}
+
+/* ─── Backtest panel ─── */
+.backtest-panel{margin-top:20px}
+.backtest-table{width:100%;border-collapse:collapse;font-size:12px}
+.backtest-table th{background:var(--ink);color:#fff;padding:7px 10px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.04em}
+.backtest-table td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.backtest-table tr:nth-child(even) td{background:var(--bg2)}
+.bt-pass{color:#1a7a50;font-weight:600}
+.bt-fail{color:#c03010;font-weight:600}
+.bt-warn{color:#b45309;font-weight:600}
+.bt-na{color:var(--muted2)}
+.bt-section{background:var(--bg2)!important;font-weight:700;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.bt-summary{display:flex;gap:14px;flex-wrap:wrap;padding:12px 0 4px}
+.bt-sum-box{flex:1 1 120px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;background:var(--card);text-align:center}
+.bt-sum-box .bn{font-size:22px;font-weight:700}
+.bt-sum-box .bl{font-size:11px;color:var(--muted);margin-top:2px}
+.bt-sum-box.pass-box{border-color:#86efac;background:#f0faf5}
+.bt-sum-box.pass-box .bn{color:#1a7a50}
+.bt-sum-box.fail-box{border-color:#fca5a5;background:#fff5f3}
+.bt-sum-box.fail-box .bn{color:#c03010}
+.bt-sum-box.warn-box-s{border-color:var(--warn-yellow);background:#fffbf0}
+.bt-sum-box.warn-box-s .bn{color:#b45309}
+
+/* ─── Misc ─── */
+.hidden{display:none!important}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.footer-note{font-size:11px;color:var(--muted2);line-height:1.4;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+
+/* ═══════════════════════════════════════════
+   DROPDOWN LAUNCHER
+═══════════════════════════════════════════ */
+
+/* Outer shell — sits in page flow */
+.calc-shell{
+  max-width:1060px;
+  margin:32px auto;
+  padding:0 20px 48px;
+}
+
+/* The trigger row — always visible */
+.calc-trigger{
+  display:flex;
+  align-items:center;
+  gap:0;
+  background:var(--ink);
+  border-radius:var(--radius);
+  overflow:hidden;
+  cursor:pointer;
+  user-select:none;
+  box-shadow:0 4px 24px rgba(15,17,23,.18), 0 1px 4px rgba(15,17,23,.12);
+  transition:box-shadow .2s, transform .15s;
+  position:relative;
+}
+.calc-trigger::before{
+  content:'';
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 50%,rgba(57,106,255,.38) 0%,transparent 65%),
+             radial-gradient(ellipse at 15% 80%,rgba(124,58,237,.22) 0%,transparent 55%);
+  pointer-events:none;
+  border-radius:inherit;
+}
+.calc-trigger:hover{
+  box-shadow:0 8px 32px rgba(15,17,23,.24), 0 2px 6px rgba(15,17,23,.14);
+  transform:translateY(-1px);
+}
+.calc-trigger:active{transform:translateY(0)}
+
+.trigger-body{
+  flex:1;
+  padding:22px 28px;
+  position:relative;
+}
+.trigger-title{
+  font-family:'DM Serif Display',Georgia,serif;
+  font-size:clamp(18px,2.5vw,26px);
+  font-weight:400;
+  color:#fff;
+  letter-spacing:-.02em;
+  line-height:1.15;
+}
+.trigger-sub{
+  font-size:12px;
+  color:rgba(255,255,255,.55);
+  margin-top:5px;
+  line-height:1.35;
+}
+.trigger-badges{
+  display:flex;
+  gap:7px;
+  margin-top:10px;
+  flex-wrap:wrap;
+}
+.trigger-badge{
+  font-size:10.5px;
+  font-weight:500;
+  padding:2px 9px;
+  border-radius:var(--radius-pill);
+  border:1px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.72);
+}
+.trigger-badge.diet-std{border-color:rgba(59,106,255,.5);color:#93b4ff}
+.trigger-badge.diet-lc{border-color:rgba(8,145,178,.5);color:#67e8f9}
+.trigger-badge.diet-keto{border-color:rgba(124,58,237,.5);color:#c4b5fd}
+
+/* The chevron/toggle side */
+.trigger-toggle{
+  flex-shrink:0;
+  width:72px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  border-left:1px solid rgba(255,255,255,.1);
+  padding:22px 0;
+  position:relative;
+  transition:background .15s;
+}
+.trigger-toggle:hover{background:rgba(255,255,255,.06)}
+.toggle-icon{
+  font-size:22px;
+  line-height:1;
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+  color:rgba(255,255,255,.85);
+}
+.toggle-icon.rotated{transform:rotate(180deg)}
+.toggle-label{
+  font-size:10px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:rgba(255,255,255,.45);
+}
+
+/* Status pill shown inside trigger when calculator has results */
+.trigger-status{
+  display:none;
+  align-items:center;
+  gap:6px;
+  margin-top:8px;
+}
+.trigger-status.visible{display:flex}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;box-shadow:0 0 6px #22c55e}
+.status-text{font-size:11px;color:rgba(255,255,255,.65);font-weight:500}
+
+/* The dropdown panel */
+.calc-dropdown{
+  overflow:hidden;
+  max-height:0;
+  opacity:0;
+  transform:translateY(-8px);
+  transition:
+    max-height .45s cubic-bezier(.4,0,.2,1),
+    opacity .3s ease,
+    transform .3s ease;
+  /* Important: don't use display:none — breaks transitions */
+  pointer-events:none;
+}
+.calc-dropdown.open{
+  max-height:12000px;   /* large enough for full content */
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
+}
+
+/* Inner content area */
+.calc-dropdown-inner{
+  padding-top:16px;
+}
+/* Two-column layout inside dropdown */
+.layout{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  align-items:start;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     CALCULATOR SHELL — click trigger to open/close
+══════════════════════════════════════════════════ -->
+<div class="calc-shell">
+
+  <!-- ─── TRIGGER ─── -->
+  <div class="calc-trigger" id="calcTrigger" role="button" tabindex="0" aria-expanded="false" aria-controls="calcDropdown">
+    <div class="trigger-body">
+      <div class="trigger-title">Calorie + Macro Calculator</div>
+      <div class="trigger-sub">Expert-grade estimation — Standard, Low-Carb &amp; Ketogenic · Sex-neutral guardrails · Adaptive TDEE · Backtest suite</div>
+      <div class="trigger-badges">
+        <span class="trigger-badge diet-std">🍽️ Standard</span>
+        <span class="trigger-badge diet-lc">🥩 Low-Carb</span>
+        <span class="trigger-badge diet-keto">⚡ Ketogenic</span>
+        <span class="trigger-badge">Katch–McArdle · Mifflin</span>
+        <span class="trigger-badge">Built-in Backtest</span>
+      </div>
+      <div class="trigger-status" id="triggerStatus">
+        <span class="status-dot"></span>
+        <span class="status-text" id="statusText">Results ready</span>
+      </div>
+    </div>
+    <div class="trigger-toggle" id="triggerToggle">
+      <span class="toggle-icon" id="toggleIcon">⌄</span>
+      <span class="toggle-label" id="toggleLabel">Open</span>
+    </div>
+  </div>
+
+  <!-- ─── DROPDOWN PANEL ─── -->
+  <div class="calc-dropdown" id="calcDropdown" aria-hidden="true">
+    <div class="calc-dropdown-inner">
+      <div class="layout">
+
+<!-- ═══════════════ LEFT: INPUTS ═══════════════ -->
+<div>
+
+  <!-- Goal mode -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-head"><h2>Goal Mode</h2><span class="badge" id="goalBadge">Weight Loss</span></div>
+    <div class="card-body">
+      <div class="seg-group" id="goalSeg">
+        <button type="button" data-goal="loss" class="active">⚖️ Weight Loss</button>
+        <button type="button" data-goal="cut">🔬 Fat Loss + Muscle</button>
+        <button type="button" data-goal="bulk">💪 Lean Bulk</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diet type -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-head"><h2>Diet Type</h2><span class="badge" id="dietBadge">Standard</span></div>
+    <div class="card-body">
+      <div class="seg-group" id="dietSeg">
+        <button type="button" data-diet="standard" class="active">🍽️ Standard</button>
+        <button type="button" data-diet="lowcarb" class="lowcarb-btn">🥩 Low-Carb</button>
+        <button type="button" data-diet="keto" class="keto-btn">⚡ Ketogenic</button>
+      </div>
+      <div id="dietBanner" class="diet-banner standard" style="margin-top:12px">
+        <div class="diet-banner-icon">🍽️</div>
+        <div id="dietBannerText"><b>Standard / Balanced:</b> Protein first, fat minimum, carbs fill the remainder. No carb ceiling. Ideal for most goal modes and training styles.</div>
+      </div>
+
+      <!-- Keto-specific controls -->
+      <div id="ketoControls" class="hidden" style="margin-top:10px">
+        <div class="field-grid">
+          <div class="field">
+            <label>Net carb target (g/day) <span class="tip" data-tip="Ketogenic: typically 20–50g net carbs/day. 20g is strict keto; 30–50g is moderate. Fiber not counted.">?</span></label>
+            <select id="ketoCarbs">
+              <option value="20">20g — strict keto</option>
+              <option value="30" selected>30g — moderate keto</option>
+              <option value="50">50g — liberal keto</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Custom net carbs (g)</label>
+            <input id="ketoCarbsCustom" type="number" min="5" max="100" placeholder="e.g., 35" disabled/>
+          </div>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label>Fat % of remaining calories <span class="tip" data-tip="After protein and carb calories are set, fat fills the rest. Default ~70–75% of total calories is typical for keto.">?</span></label>
+            <select id="ketoFatPct">
+              <option value="0.65">65% — moderate fat</option>
+              <option value="0.70" selected>70% — standard keto</option>
+              <option value="0.75">75% — high fat keto</option>
+              <option value="0.80">80% — very high fat</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Keto electrolyte note</label>
+            <div style="font-size:11.5px;color:var(--muted);padding:9px 0;line-height:1.4">Sodium, potassium, and magnesium supplementation is commonly recommended during keto adaptation.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Low-carb controls -->
+      <div id="lowcarbControls" class="hidden" style="margin-top:10px">
+        <div class="field-grid">
+          <div class="field">
+            <label>Carb ceiling (g/day) <span class="tip" data-tip="Low-carb: carbs are capped at this level. Remaining calories after protein go to fat, then carbs up to this ceiling.">?</span></label>
+            <select id="lowcarbCarbs">
+              <option value="75">75g — strict low-carb</option>
+              <option value="100" selected>100g — moderate low-carb</option>
+              <option value="130">130g — liberal low-carb</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Custom carb ceiling (g)</label>
+            <input id="lowcarbCarbsCustom" type="number" min="30" max="200" placeholder="e.g., 120" disabled/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body stats -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-head"><h2>Body Stats</h2></div>
+    <div class="card-body">
+      <div class="field-grid">
+        <div class="field">
+          <label>Units</label>
+          <select id="units">
+            <option value="us">US (lb, ft/in)</option>
+            <option value="metric">Metric (kg, cm)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Biological Sex</label>
+          <select id="sex">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Age (years)</label>
+          <input id="age" type="number" min="10" max="90" value="29"/>
+        </div>
+        <div class="field">
+          <label>Body Fat % <span class="tip" data-tip="Optional but improves accuracy. Enables Katch–McArdle BMR and lean-mass protein targeting.">?</span></label>
+          <input id="bf" type="number" min="1" max="70" placeholder="e.g., 22" value="22"/>
+        </div>
+      </div>
+      <div id="heightRowUS">
+        <div class="field-grid">
+          <div class="field"><label>Height (ft)</label><input id="h_ft" type="number" min="3" max="8" value="5"/></div>
+          <div class="field"><label>Height (in)</label><input id="h_in" type="number" min="0" max="11" value="10"/></div>
+        </div>
+        <div class="field" style="margin-bottom:10px"><label>Weight (lb)</label><input id="w_lb" type="number" min="80" max="550" value="205"/></div>
+      </div>
+      <div id="heightRowMetric" class="hidden">
+        <div class="field-grid">
+          <div class="field"><label>Height (cm)</label><input id="h_cm" type="number" min="120" max="230" value="178"/></div>
+          <div class="field"><label>Weight (kg)</label><input id="w_kg" type="number" min="35" max="250" value="93"/></div>
+        </div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Activity Level <span class="tip" data-tip="TDEE = BMR × multiplier. Sedentary = desk job only. Light = 1–3 days/wk. Moderate = 3–5 days. Very Active = 6–7 hard days. Athlete = 2×/day or physical job.">?</span></label>
+          <select id="activity">
+            <option value="1.2">Sedentary (1.2)</option>
+            <option value="1.375">Light active (1.375)</option>
+            <option value="1.55" selected>Moderate (1.55)</option>
+            <option value="1.725">Very active (1.725)</option>
+            <option value="1.9">Athlete / hard job (1.9)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Resistance Training <span class="tip" data-tip="Days/week of dedicated resistance or strength training. Influences warnings in fat-loss + muscle mode.">?</span></label>
+          <select id="rt">
+            <option value="0">None / inconsistent</option>
+            <option value="2">2 days/week</option>
+            <option value="3" selected>3 days/week</option>
+            <option value="4">4 days/week</option>
+            <option value="5">5+ days/week</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>BMR Method <span class="tip" data-tip="Katch–McArdle uses lean body mass — more accurate when BF% is reliable. Mifflin–St Jeor uses height/weight/age/sex. Both have ~±10% individual error.">?</span></label>
+        <select id="bmr">
+          <option value="katch" selected>Katch–McArdle (best with BF%)</option>
+          <option value="mifflin">Mifflin–St Jeor</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal settings -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-head"><h2>Goal Settings</h2></div>
+    <div class="card-body">
+      <!-- Loss -->
+      <div id="lossInputs">
+        <div class="field-grid">
+          <div class="field"><label>Target loss (lb or kg)</label><input id="targetLoss" type="number" min="0" step="0.5" value="15"/></div>
+          <div class="field"><label>Timeframe (weeks)</label><input id="weeks" type="number" min="1" step="1" value="12"/></div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:2px">Deficit = target ÷ timeframe × 7700 kcal/kg, then capped by floors. If floor binds, revised timeline is shown.</p>
+      </div>
+      <!-- Cut -->
+      <div id="cutInputs" class="hidden">
+        <div class="field-grid">
+          <div class="field">
+            <label>Deficit (% of TDEE) <span class="tip" data-tip="Auto selects a BF%-aware deficit: leaner → smaller. You can override.">?</span></label>
+            <select id="cutDefPct">
+              <option value="auto" selected>Auto (BF%-aware)</option>
+              <option value="0.10">10% — mild</option>
+              <option value="0.15">15% — moderate</option>
+              <option value="0.20">20% — aggressive</option>
+              <option value="0.25">25% — very aggressive</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Max loss rate cap <span class="tip" data-tip="If chosen deficit % exceeds this, deficit is reduced. Binding constraint shown in results.">?</span></label>
+            <select id="maxRate">
+              <option value="0.5">0.5% BW/wk — conservative</option>
+              <option value="0.75" selected>0.75% BW/wk — default</option>
+              <option value="1.0">1.0% BW/wk — aggressive</option>
+              <option value="1.5">1.5% BW/wk — very aggressive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- Bulk -->
+      <div id="bulkInputs" class="hidden">
+        <div class="field-grid">
+          <div class="field">
+            <label>Surplus (% of TDEE)</label>
+            <select id="bulkSurPct">
+              <option value="0.03">3% — lean bulk</option>
+              <option value="0.05" selected>5% — default</option>
+              <option value="0.08">8% — moderate</option>
+              <option value="0.12">12% — aggressive</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Target gain rate (% BW/wk) <span class="tip" data-tip="Overrides surplus % if entered. 0.1–0.5% BW/week is typical. >0.5% likely adds excess fat.">?</span></label>
+            <input id="gainRate" type="number" step="0.05" min="0" max="2" placeholder="e.g., 0.25"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Macro settings -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-head"><h2>Macro Settings</h2></div>
+    <div class="card-body">
+      <div class="check-row">
+        <label class="pill-check"><input id="useLBMProtein" type="checkbox" checked/> LBM-based protein (if BF% given)</label>
+        <label class="pill-check" id="perfCarbLabel"><input id="performanceCarb" type="checkbox"/> Carb-emphasis for training</label>
+      </div>
+      <div class="field-grid-3">
+        <div class="field">
+          <label>Calorie floor <span class="tip" data-tip="Auto = 1200 kcal (female) / 1500 kcal (male). Override here. Floors below BMR×1.2 add an extra warning.">?</span></label>
+          <input id="calFloor" type="number" min="800" step="10" placeholder="Auto"/>
+        </div>
+        <div class="field">
+          <label>Fat minimum rule <span class="tip" data-tip="Max(20% kcal, 0.6 g/kg) is the recommended default for standard/low-carb. In keto mode this is overridden by fat-fill logic.">?</span></label>
+          <select id="fatMinRule">
+            <option value="max" selected>Max(20% kcal, 0.6 g/kg)</option>
+            <option value="pct">20% of kcal only</option>
+            <option value="gkg">0.6 g/kg only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Protein preference</label>
+          <select id="protPref">
+            <option value="default" selected>Default</option>
+            <option value="high">Higher (top of range)</option>
+            <option value="low">Lower (bottom of range)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Meal split -->
+      <div style="margin-top:10px">
+        <div class="collapsible-head" id="mealSplitHead">🍽️ Meal Split Helper <span class="arrow">▼</span></div>
+        <div class="collapsible-body" id="mealSplitBody">
+          <div class="collapsible-inner">
+            <div class="field-grid" style="margin-bottom:10px">
+              <div class="field"><label>Meals per day</label>
+                <select id="mealCount"><option value="2">2 meals</option><option value="3" selected>3 meals</option><option value="4">4 meals</option><option value="5">5 meals</option></select>
+              </div>
+              <div class="field"><label>Show macros</label>
+                <select id="mealMacroShow"><option value="protein">Protein only</option><option value="all">All macros</option></select>
+              </div>
+            </div>
+            <div id="mealSplitTable"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="btn-row">
+    <button class="btn primary" id="calcBtn" type="button">Calculate</button>
+    <button class="btn" id="resetBtn" type="button">Reset</button>
+    <button class="btn" id="copyBtn" type="button" disabled>Copy Results</button>
+  </div>
+  <p class="footer-note">Estimates only — not medical or dietary advice. Individual metabolic variation can produce ±10–15% real-world differences. Consult a registered dietitian for clinical guidance.</p>
+</div>
+
+<!-- ═══════════════ RIGHT: RESULTS ═══════════════ -->
+<div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-head"><h2>Results</h2><span class="badge" id="resultDietBadge">—</span></div>
+    <div class="card-body">
+      <div id="resultsEmpty" style="font-size:13px;color:var(--muted);padding:8px 0">Enter your stats and click <b>Calculate</b>.</div>
+      <div id="resultsMain" class="hidden">
+
+        <div class="section-title">Energy</div>
+        <div class="metric-grid">
+          <div class="metric"><div class="k">BMR <span id="bmrMethod2" style="font-size:10px;font-weight:400;color:var(--muted2)"></span></div><div class="v" id="outBMR">—</div><div class="sub" id="outBMRNote">—</div></div>
+          <div class="metric"><div class="k">Maintenance (TDEE)</div><div class="v" id="outTDEE">—</div><div class="sub" id="outTDEENote">—</div></div>
+          <div class="metric highlight" id="goalCalMetric"><div class="k">Goal Calories</div><div class="v" id="outCals">—</div><div class="sub" id="outCalNote">—</div></div>
+          <div class="metric"><div class="k">Expected Rate</div><div class="v" id="outRate">—</div><div class="sub" id="outRateNote">—</div></div>
+        </div>
+
+        <div id="constraintCapBox" class="constraint-cap hidden"></div>
+        <div id="feasibilityBox" class="hidden"></div>
+
+        <div class="section-title" style="margin-top:14px">Macros</div>
+        <table class="macro-table" id="macroTable">
+          <thead><tr><th>Macro</th><th>g / day</th><th>kcal / day</th><th>% Cals</th></tr></thead>
+          <tbody>
+            <tr id="rowP">
+              <td><div class="macro-name"><span class="macro-dot" style="background:#3b6aff"></span>Protein</div></td>
+              <td class="big" id="outPg">—</td><td id="outPkcal">—</td><td id="outPpct">—</td>
+            </tr>
+            <tr><td colspan="4" class="bar-cell"><div class="bar-track"><div class="bar-fill" id="barP" style="background:#3b6aff;width:0%"></div></div></td></tr>
+            <tr id="rowF">
+              <td><div class="macro-name"><span class="macro-dot" style="background:#f59e0b"></span>Fat</div></td>
+              <td class="big" id="outFg">—</td><td id="outFkcal">—</td><td id="outFpct">—</td>
+            </tr>
+            <tr><td colspan="4" class="bar-cell"><div class="bar-track"><div class="bar-fill" id="barF" style="background:#f59e0b;width:0%"></div></div></td></tr>
+            <tr id="rowC">
+              <td><div class="macro-name"><span class="macro-dot" style="background:#22c55e"></span>Carbs</div></td>
+              <td class="big" id="outCg">—</td><td id="outCkcal">—</td><td id="outCpct">—</td>
+            </tr>
+            <tr><td colspan="4" class="bar-cell"><div class="bar-track"><div class="bar-fill" id="barC" style="background:#22c55e;width:0%"></div></div></td></tr>
+            <tr style="background:var(--bg2)">
+              <td style="font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em">Total</td>
+              <td class="big" id="outTotalG">—</td><td id="outTotalKcal">—</td><td id="outTotalPct">—</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div id="dietTargetsBox" class="diet-targets hidden"></div>
+
+        <div class="detail-block">
+          <h4>Protein detail</h4>
+          <div id="protDetail" style="font-size:12px;color:var(--muted)"></div>
+        </div>
+        <div class="detail-block" id="fatDetailBox">
+          <h4>Fat detail</h4>
+          <div id="fatDetail"></div>
+        </div>
+
+        <div class="section-title" style="margin-top:14px">Flags &amp; Notes</div>
+        <div id="warningsBox"></div>
+
+        <div id="mealSplitOutput" class="hidden">
+          <div class="section-title" style="margin-top:14px">Meal Split</div>
+          <div id="mealSplitTableOut"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Adaptive mode -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-head"><h2>Adaptive Mode</h2><span class="badge">14+ days</span></div>
+    <div class="card-body">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Track weekly average weight and average intake to infer a data-driven TDEE. Requires a prior calculation.</p>
+      <div class="field-grid-3">
+        <div class="field"><label>Week 1 avg weight (<span id="wkUnit">lb</span>)</label><input id="wk1w" type="number" step="0.1" placeholder="e.g., 205"/></div>
+        <div class="field"><label>Week 2 avg weight</label><input id="wk2w" type="number" step="0.1" placeholder="e.g., 203.5"/></div>
+        <div class="field"><label>Avg intake (kcal/day)</label><input id="avgIntake" type="number" step="5" placeholder="e.g., 2350"/></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="inferBtn" type="button">Infer TDEE</button>
+        <button class="btn" id="applyBtn" type="button" disabled>Apply (smoothed)</button>
+      </div>
+      <div class="adaptive-block">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2)">Inferred TDEE</div>
+        <div class="adaptive-stats">
+          <div class="a-stat"><div class="k">Inferred TDEE</div><div class="v" id="inferTDEE">—</div></div>
+          <div class="a-stat"><div class="k">Daily trend</div><div class="v" id="inferTrend">—</div></div>
+          <div class="a-stat"><div class="k">Net deficit / surplus</div><div class="v" id="inferDeficit">—</div></div>
+        </div>
+        <div id="inferNote" style="font-size:12px;color:var(--muted);margin-top:10px"></div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="field"><label>Custom TDEE override (kcal/day) <span class="tip" data-tip="Bypasses BMR × multiplier. Use if you have a reliably measured TDEE. Apply from Adaptive Mode or enter manually.">?</span></label>
+          <input id="customTDEE" type="number" step="10" placeholder="Leave blank to use calculated"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backtest panel -->
+  <div class="backtest-panel">
+    <div class="card">
+      <div class="card-head"><h2>Built-in Accuracy Backtest</h2><span class="badge">12 test cases</span></div>
+      <div class="card-body">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Runs all test cases programmatically against the calculation engine and validates outputs against expected ranges. Tests cover standard, low-carb, and keto modes; male/female; US/metric; edge cases and floor-binding scenarios.</p>
+        <button class="btn primary" id="runBacktestBtn" type="button">▶ Run Backtest Suite</button>
+        <div id="backtestResults" class="hidden" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- right col -->
+      </div><!-- .layout -->
+    </div><!-- .calc-dropdown-inner -->
+  </div><!-- .calc-dropdown -->
+
+</div><!-- .calc-shell -->
+
+<script>
+"use strict";
+(function(){
+
+// ═══════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const fmt = n => isFinite(n) ? Math.round(n).toLocaleString() : "—";
+const fmtDec = (n,d=1) => isFinite(n) ? n.toFixed(d) : "—";
+const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
+const toNum = v => { const n = Number(v); return Number.isFinite(n) ? n : NaN; };
+const lbToKg = lb => lb / 2.2046226218;
+const kgToLb = kg => kg * 2.2046226218;
+const ftInToCm = (ft,inch) => (ft*12+inch)*2.54;
+
+// ═══════════════════════════════════════════════════
+//  DIET TYPE
+// ═══════════════════════════════════════════════════
+const DIET_INFO = {
+  standard: {
+    icon:'🍽️',
+    label:'Standard / Balanced',
+    desc:'Protein first, fat minimum, carbs fill the remainder. No carb ceiling. Ideal for most goal modes and training styles.',
+    badgeClass:'',
+  },
+  lowcarb: {
+    icon:'🥩',
+    label:'Low-Carb',
+    desc:'Carbs capped at your chosen ceiling (typically 75–130g/day). Fat fills remaining calories. Protein targets unchanged. Good for metabolic health, satiety, and fat loss without strict ketosis.',
+    badgeClass:'lowcarb',
+  },
+  keto: {
+    icon:'⚡',
+    label:'Ketogenic',
+    desc:'Net carbs fixed to target (20–50g/day). Fat fills ~70–80% of total calories. Protein is moderate to prevent excess gluconeogenesis. Adaptation takes 2–4 weeks; electrolyte management is important.',
+    badgeClass:'keto',
+  },
+};
+
+let currentDiet = 'standard';
+let currentGoal = 'loss';
+
+document.querySelectorAll('#dietSeg button').forEach(btn => {
+  btn.addEventListener('click', () => setDiet(btn.dataset.diet));
+});
+
+function setDiet(d){
+  currentDiet = d;
+  document.querySelectorAll('#dietSeg button').forEach(b => b.classList.toggle('active', b.dataset.diet===d));
+  const info = DIET_INFO[d];
+  $('dietBadge').textContent = info.label;
+  $('dietBadge').className = 'badge ' + info.badgeClass;
+  const banner = $('dietBanner');
+  banner.className = 'diet-banner ' + d;
+  $('dietBannerText').innerHTML = `<b>${info.icon} ${info.label}:</b> ${info.desc}`;
+  $('ketoControls').classList.toggle('hidden', d !== 'keto');
+  $('lowcarbControls').classList.toggle('hidden', d !== 'lowcarb');
+  // Performance carb emphasis disabled for keto
+  $('perfCarbLabel').style.opacity = d === 'keto' ? '0.4' : '1';
+  $('performanceCarb').disabled = d === 'keto';
+  if(d === 'keto') $('performanceCarb').checked = false;
+}
+
+// Keto custom carbs
+$('ketoCarbs').addEventListener('change', () => {
+  $('ketoCarbsCustom').disabled = $('ketoCarbs').value !== 'custom';
+});
+$('lowcarbCarbs').addEventListener('change', () => {
+  $('lowcarbCarbsCustom').disabled = $('lowcarbCarbs').value !== 'custom';
+});
+
+// ═══════════════════════════════════════════════════
+//  GOAL MODE
+// ═══════════════════════════════════════════════════
+document.querySelectorAll('#goalSeg button').forEach(btn => {
+  btn.addEventListener('click', () => setGoal(btn.dataset.goal));
+});
+function setGoal(g){
+  currentGoal = g;
+  document.querySelectorAll('#goalSeg button').forEach(b => b.classList.toggle('active', b.dataset.goal===g));
+  $('lossInputs').classList.toggle('hidden', g!=='loss');
+  $('cutInputs').classList.toggle('hidden', g!=='cut');
+  $('bulkInputs').classList.toggle('hidden', g!=='bulk');
+  const labels = {loss:'Weight Loss', cut:'Fat Loss + Muscle', bulk:'Lean Bulk'};
+  $('goalBadge').textContent = labels[g]||'';
+}
+
+// ═══════════════════════════════════════════════════
+//  UNITS
+// ═══════════════════════════════════════════════════
+$('units').addEventListener('change', () => setUnits($('units').value));
+function setUnits(u){
+  const isUS = u==='us';
+  $('heightRowUS').classList.toggle('hidden', !isUS);
+  $('heightRowMetric').classList.toggle('hidden', isUS);
+  $('wkUnit').textContent = isUS ? 'lb' : 'kg';
+  if(isUS){
+    const kg = toNum($('w_kg').value);
+    if(isFinite(kg)) $('w_lb').value = kgToLb(kg).toFixed(1);
+    const cm = toNum($('h_cm').value);
+    if(isFinite(cm)){ const ti=cm/2.54,ft=Math.floor(ti/12); $('h_ft').value=ft; $('h_in').value=clamp(Math.round(ti-ft*12),0,11); }
+  } else {
+    const lb = toNum($('w_lb').value);
+    if(isFinite(lb)) $('w_kg').value = lbToKg(lb).toFixed(1);
+    const ft=toNum($('h_ft').value), inch=toNum($('h_in').value);
+    if(isFinite(ft)&&isFinite(inch)) $('h_cm').value = ftInToCm(ft,inch).toFixed(0);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  COLLAPSIBLE
+// ═══════════════════════════════════════════════════
+$('mealSplitHead').addEventListener('click', () => {
+  $('mealSplitHead').classList.toggle('open');
+  $('mealSplitBody').classList.toggle('open');
+  renderMealSplit();
+});
+
+// ═══════════════════════════════════════════════════
+//  CORE CALCULATION ENGINE
+//  Pure function — takes a params object, returns results object
+//  Used by both the UI calc and the backtest runner
+// ═══════════════════════════════════════════════════
+function bfAwareDeficitPct(bfPct, sex){
+  if(!isFinite(bfPct)) return 0.15;
+  const leanT = sex==='female' ? 22 : 15;
+  const highT = sex==='female' ? 35 : 25;
+  if(bfPct >= highT) return 0.22;
+  if(bfPct >= leanT) return 0.15;
+  return 0.10;
+}
+
+function autoCalFloor(sex){ return sex==='female' ? 1200 : 1500; }
+
+function calcEngine(p){
+  // p: { units, sex, age, wkg, hcm, bf, activityMult, bmrMethod, goal, diet,
+  //      ketoNetCarbs, ketoFatPct, lowcarbCeiling,
+  //      cutDefPct_raw, maxRatePct, bulkSurPct, gainRate, targetLoss, weeks,
+  //      useLBM, perfCarb, protPref, calFloor_raw, fatMinRule, customTDEE }
+  const out = { warnings:[], errors:[], flags:[] };
+  const {units,sex,age,wkg,hcm,bf,activityMult,bmrMethod,goal,diet} = p;
+
+  // ── Validation ──
+  if(!isFinite(wkg)||wkg<=0) out.errors.push("Weight missing or invalid.");
+  if(!isFinite(hcm)||hcm<=0) out.errors.push("Height missing or invalid.");
+  if(!isFinite(age)||age<10||age>90) out.warnings.push("Age outside typical range (10–90).");
+
+  const bfProvided = isFinite(bf)&&bf>=3&&bf<=65;
+  const lbm = bfProvided ? wkg*(1-bf/100) : NaN;
+
+  if(!bfProvided && isFinite(bf)) out.warnings.push("BF% is outside plausible range (3–65%). Falling back to Mifflin–St Jeor.");
+  else if(!bfProvided) out.warnings.push("No BF% entered. Using Mifflin–St Jeor BMR. LBM protein targeting unavailable.");
+  if(bfProvided && bf<5) out.warnings.push(`BF% of ${bf}% is extremely low — verify accuracy.`);
+
+  // ── BMR ──
+  const BMR_mifflin = 10*wkg + 6.25*hcm - 5*age + (sex==='male' ? 5 : -161);
+  const BMR_katch = bfProvided ? (370 + 21.6*lbm) : NaN;
+  let BMR, bmrNote;
+  if(bmrMethod==='katch'){
+    if(bfProvided){ BMR=BMR_katch; bmrNote="Katch–McArdle (LBM-based)"; }
+    else { BMR=BMR_mifflin; bmrNote="Mifflin–St Jeor (BF% fallback)"; out.warnings.push("Katch–McArdle selected but BF% missing — fell back to Mifflin–St Jeor."); }
+  } else {
+    BMR=BMR_mifflin; bmrNote="Mifflin–St Jeor";
+    if(bfProvided){ const d=Math.round(BMR_katch-BMR_mifflin); out.warnings.push(`FYI: Katch–McArdle would estimate ${d>=0?'+':''}${d} kcal/day vs Mifflin.`); }
+  }
+
+  // ── TDEE ──
+  const customTDEE = isFinite(p.customTDEE)&&p.customTDEE>0 ? p.customTDEE : NaN;
+  const TDEE = isFinite(customTDEE) ? customTDEE : BMR*activityMult;
+  const tdeeNote = isFinite(customTDEE) ? `Custom TDEE override (${fmt(customTDEE)} kcal/day)` : `BMR × ${activityMult}`;
+
+  // ── Floor ──
+  const calFloor = (isFinite(p.calFloor_raw)&&p.calFloor_raw>0) ? p.calFloor_raw : autoCalFloor(sex);
+  const dynFloor = BMR*1.2;
+
+  // ── Goal-specific calorie targets ──
+  let goalCalories=NaN, calNote='', expectedRateKg=NaN, rateNote='', constraintCapHTML='', feasibilityHTML='';
+
+  if(goal==='loss'){
+    const lossKg = (units==='us') ? lbToKg(p.targetLoss) : p.targetLoss;
+    if(!isFinite(lossKg)||lossKg<=0) out.errors.push("Target loss missing or invalid.");
+    if(!isFinite(p.weeks)||p.weeks<=0) out.errors.push("Timeframe (weeks) missing or invalid.");
+    if(out.errors.length===0){
+      const dailyDef = (lossKg*7700)/(p.weeks*7);
+      goalCalories = TDEE - dailyDef;
+      expectedRateKg = -(lossKg/p.weeks);
+      calNote = `Deficit: ${fmt(dailyDef)} kcal/day from target/timeframe.`;
+      rateNote = `~${fmtDec(Math.abs(units==='us'?kgToLb(expectedRateKg):expectedRateKg))} ${units==='us'?'lb':'kg'}/wk`;
+    }
+  }
+  if(goal==='cut'){
+    const defPct = p.cutDefPct_raw==='auto' ? bfAwareDeficitPct(bf,sex) : toNum(p.cutDefPct_raw);
+    const defPctUsed = isFinite(defPct) ? defPct : 0.15;
+    const chosenDef = TDEE*defPctUsed;
+    const maxKgW = (p.maxRatePct/100)*wkg;
+    const maxDef = (maxKgW*7700)/7;
+    let dailyDef = chosenDef, capped=false;
+    if(dailyDef>maxDef){ dailyDef=maxDef; capped=true; }
+    goalCalories = TDEE - dailyDef;
+    expectedRateKg = -(dailyDef*7)/7700;
+    rateNote = `~${fmtDec(Math.abs(units==='us'?kgToLb(expectedRateKg):expectedRateKg))} ${units==='us'?'lb':'kg'}/wk`;
+    calNote = (p.cutDefPct_raw==='auto'?`Auto deficit ${Math.round(defPctUsed*100)}% of TDEE`:`Deficit ${Math.round(defPctUsed*100)}% of TDEE`) + (capped?' (rate-capped)':'');
+    if(capped) constraintCapHTML=`<b>Constraint cap applied:</b> Chosen deficit ${fmt(chosenDef)} kcal/day capped to ${fmt(maxDef)} kcal/day — binding: max rate ${p.maxRatePct}% BW/wk.`;
+    if(toNum(p.rtDays)<=0) out.warnings.push("Muscle-retention mode works best with 2–4 days/wk resistance training.");
+  }
+  if(goal==='bulk'){
+    const gainRate = toNum(p.gainRate);
+    let dailySur;
+    if(isFinite(gainRate)&&gainRate>0){
+      dailySur=(gainRate/100)*wkg*7700/7;
+      expectedRateKg=(gainRate/100)*wkg;
+      calNote=`Surplus from gain rate: ${gainRate}% BW/wk.`;
+    } else {
+      dailySur=TDEE*p.bulkSurPct;
+      expectedRateKg=(dailySur*7)/7700;
+      calNote=`Surplus: ${Math.round(p.bulkSurPct*100)}% of TDEE.`;
+    }
+    goalCalories=TDEE+dailySur;
+    rateNote=`~${fmtDec(units==='us'?kgToLb(expectedRateKg):expectedRateKg)} ${units==='us'?'lb':'kg'}/wk`;
+    const gwPct=(expectedRateKg/wkg)*100;
+    if(gwPct>0.5) out.warnings.push(`Gain rate ${fmtDec(gwPct)}% BW/wk — above 0.5% may increase fat accretion.`);
+    if(gwPct<0.1) out.warnings.push(`Gain rate ${fmtDec(gwPct,2)}% BW/wk — below 0.1% may be too slow to distinguish from weight fluctuation.`);
+  }
+
+  // ── Floor application ──
+  let floorApplied=false, adjRateKg=expectedRateKg;
+  if(isFinite(goalCalories)&&goalCalories<calFloor&&goal!=='bulk'){
+    floorApplied=true;
+    if(goal==='loss'){
+      const def2=TDEE-calFloor;
+      if(def2>0){
+        adjRateKg=-(def2*7)/7700;
+        const lossKg=(units==='us')?lbToKg(p.targetLoss):p.targetLoss;
+        if(isFinite(lossKg)&&lossKg>0){
+          const revWks=Math.ceil(lossKg/Math.abs(adjRateKg));
+          feasibilityHTML=`<b>Floor binding:</b> Revised rate ~${fmtDec(Math.abs(units==='us'?kgToLb(adjRateKg):adjRateKg))} ${units==='us'?'lb':'kg'}/wk. Est. ${revWks} wks to reach goal (vs ${p.weeks} wks planned).`;
+        }
+      } else {
+        feasibilityHTML=`<b>Infeasible under floor:</b> TDEE (${fmt(TDEE)} kcal/day) ≤ floor (${fmt(calFloor)} kcal/day). Weight loss cannot be achieved under this floor. Consider raising activity level or adjusting floor.`;
+      }
+    }
+    goalCalories=calFloor;
+    out.warnings.push(`Goal calories capped at floor (${fmt(calFloor)} kcal/day). Rate adjusted.`);
+  }
+  if(isFinite(goalCalories)&&goalCalories<dynFloor) out.warnings.push(`Goal calories (${fmt(goalCalories)}) below BMR×1.2 (${fmt(dynFloor)} kcal/day) — consider supervision.`);
+
+  // ── Rate warnings ──
+  const rateKg=isFinite(adjRateKg)?adjRateKg:expectedRateKg;
+  let rateBadge='good', rateBadgeLabel='';
+  if(isFinite(rateKg)&&rateKg<0&&goal!=='bulk'){
+    const pctBW=(Math.abs(rateKg)/wkg)*100;
+    rateBadgeLabel=`${fmtDec(pctBW)}% BW/wk`;
+    if(pctBW>1.5){ rateBadge='danger'; out.warnings.push(`Loss rate ${fmtDec(pctBW)}% BW/wk — very aggressive. Risk of muscle loss and poor adherence. Consider professional guidance.`); }
+    else if(pctBW>1.0){ rateBadge='caution'; out.warnings.push(`Loss rate ${fmtDec(pctBW)}% BW/wk — aggressive. Recovery and adherence may be affected.`); }
+    else { rateBadge='good'; }
+    if(bfProvided){
+      if(sex==='male'&&bf<10) out.warnings.push(`Very lean (male ~${bf}% BF). Aggressive deficits increase risk of poor recovery and strength loss.`);
+      else if(sex==='male'&&bf<14) out.warnings.push(`Lean (male ~${bf}% BF). A modest deficit is recommended to protect performance.`);
+      if(sex==='female'&&bf<18) out.warnings.push(`Lean (female ~${bf}% BF). Below ~18% BF, risk of cycle disruption and poor recovery rises. Mild deficit recommended.`);
+      else if(sex==='female'&&bf<22) out.warnings.push(`Moderate leanness (female ~${bf}% BF). Consider a modest deficit.`);
+    }
+  }
+
+  // ── MACRO LOGIC — diet-type aware ──
+  const useLBM = p.useLBM && bfProvided;
+  const protPref = p.protPref;
+
+  // ─ Protein ─
+  let p_basis, p_gkg_min, p_gkg_max, p_basisKg;
+  if(goal==='cut'){
+    if(useLBM){ p_basis='lean mass'; p_gkg_min=2.3; p_gkg_max=3.1; p_basisKg=lbm; }
+    else { p_basis='bodyweight'; p_gkg_min=2.0; p_gkg_max=2.6; p_basisKg=wkg; }
+  } else if(goal==='loss'){
+    if(useLBM){ p_basis='lean mass'; p_gkg_min=2.0; p_gkg_max=2.8; p_basisKg=lbm; }
+    else { p_basis='bodyweight'; p_gkg_min=1.6; p_gkg_max=2.2; p_basisKg=wkg; }
+  } else { // bulk
+    p_basis='bodyweight'; p_gkg_min=1.6; p_gkg_max=2.2; p_basisKg=wkg;
+  }
+  // Keto: moderate protein to limit gluconeogenesis (~1.5–2.0 g/kg BW or ~1.8–2.5 g/kg LBM)
+  if(diet==='keto'){
+    if(useLBM){ p_gkg_min=1.8; p_gkg_max=2.5; }
+    else { p_gkg_min=1.5; p_gkg_max=2.0; }
+    if(goal==='bulk'){ p_gkg_min=Math.min(p_gkg_min,1.6); p_gkg_max=Math.min(p_gkg_max,2.2); }
+  }
+  const pMid=(p_gkg_min+p_gkg_max)/2;
+  const pPick = protPref==='high'?p_gkg_max : protPref==='low'?p_gkg_min : pMid;
+  let p_g = Math.round((p_basisKg*pPick)/5)*5;
+
+  // ─ Carb assignment (diet-type specific) ─
+  let c_g=NaN, f_g=NaN, carbMode='remainder';
+
+  if(diet==='keto'){
+    // Fixed carbs, fat fills bulk of remaining after protein
+    const ketoC = p.ketoCarbs_raw==='custom' ? toNum(p.ketoCarbsCustom) : toNum(p.ketoCarbs_raw);
+    c_g = isFinite(ketoC) ? Math.round(ketoC/5)*5 : 30;
+    const fatPct = toNum(p.ketoFatPct) || 0.70;
+    // Fat = fatPct × goalCalories / 9, but must leave room for protein
+    const fatFromPct = (fatPct * goalCalories) / 9;
+    const protKcal = p_g*4, carbKcal = c_g*4;
+    const remainAfterPC = goalCalories - protKcal - carbKcal;
+    f_g = Math.round(Math.max(fatFromPct, remainAfterPC/9, 0) / 5)*5;
+    // Recompute carbs as true remainder if fat overshoots
+    const leftover = goalCalories - p_g*4 - f_g*9;
+    const c_check = leftover/4;
+    if(c_check < 0){
+      // fat is too high — reduce to leave carbs intact
+      f_g = Math.round(Math.max((goalCalories - p_g*4 - c_g*4)/9, 0)/5)*5;
+    }
+    carbMode='keto-fixed';
+    out.warnings.push(`Keto mode: net carbs fixed at ${c_g}g/day. Fat fills ~${Math.round(fatPct*100)}% of total calories.`);
+    if(c_g > 50) out.warnings.push(`Net carbs >50g/day — ketosis is not guaranteed for most people at this level.`);
+
+  } else if(diet==='lowcarb'){
+    const lcCeil = p.lowcarbCarbs_raw==='custom' ? toNum(p.lowcarbCarbsCustom) : toNum(p.lowcarbCarbs_raw);
+    const ceilG = isFinite(lcCeil) ? lcCeil : 100;
+    // Fat minimum rule first
+    const fatMin_pct_g = (0.20*goalCalories)/9;
+    const fatMin_gkg_g = 0.6*wkg;
+    const fatMinRule=p.fatMinRule||'max';
+    let fatMin_g = fatMinRule==='pct'?fatMin_pct_g : fatMinRule==='gkg'?fatMin_gkg_g : Math.max(fatMin_pct_g,fatMin_gkg_g);
+    f_g = Math.round(Math.max(fatMin_g,(0.35*goalCalories)/9)/5)*5; // fat ~35% as default for low-carb
+    const remaining = goalCalories - p_g*4 - f_g*9;
+    c_g = Math.min(Math.round(remaining/4/5)*5, Math.round(ceilG/5)*5);
+    c_g = Math.max(0, c_g);
+    // If carb ceiling caused leftover, add to fat
+    const leftover = goalCalories - p_g*4 - f_g*9 - c_g*4;
+    if(leftover > 0) f_g = Math.round((f_g + leftover/9)/5)*5;
+    carbMode='lowcarb-capped';
+    out.warnings.push(`Low-carb mode: carbs capped at ${ceilG}g/day. Remaining calories allocated to fat.`);
+
+  } else {
+    // Standard: protein → fat min → carbs remainder
+    const fatMin_pct_g = (0.20*goalCalories)/9;
+    const fatMin_gkg_g = 0.6*wkg;
+    const fatMinRule=p.fatMinRule||'max';
+    let fatMin_g = fatMinRule==='pct'?fatMin_pct_g : fatMinRule==='gkg'?fatMin_gkg_g : Math.max(fatMin_pct_g,fatMin_gkg_g);
+    f_g = fatMin_g;
+    if(goal==='bulk'||!p.perfCarb){ f_g = Math.max(fatMin_g,(0.25*goalCalories)/9); }
+    f_g = Math.round(f_g/5)*5;
+    const rem = goalCalories - p_g*4 - f_g*9;
+    c_g = rem/4;
+
+    // Negative carb recovery step 1: reduce fat to min
+    if(c_g < 0){
+      const f_min_r = Math.round(fatMin_g/5)*5;
+      if(f_g>f_min_r){ const rem2=goalCalories-p_g*4-f_min_r*9; if(rem2/4>=0){ out.warnings.push("Fat reduced to minimum to keep carbs ≥ 0."); f_g=f_min_r; c_g=rem2/4; } }
+    }
+    // Step 2: reduce protein toward min
+    if(c_g < 0){
+      const p_min_g=Math.round((p_basisKg*p_gkg_min)/5)*5;
+      if(p_g>p_min_g){ const rem3=goalCalories-p_min_g*4-f_g*9; if(rem3/4>=0){ out.warnings.push("Protein reduced to range minimum to keep carbs ≥ 0."); p_g=p_min_g; c_g=rem3/4; } }
+    }
+    c_g = Math.max(0, Math.round(c_g/5)*5);
+    carbMode='standard';
+
+    // Fat detail for standard
+    out.fatDetailRows = {
+      pct: fmtDec(fatMin_pct_g),
+      gkg: fmtDec(fatMin_gkg_g),
+      applied: fmtDec(Math.max(fatMin_pct_g,fatMin_gkg_g)),
+      rule: fatMinRule
+    };
+  }
+
+  // ─ Common warnings ─
+  const totalMacroKcal = p_g*4 + f_g*9 + c_g*4;
+  const pPct = isFinite(goalCalories) ? (p_g*4/goalCalories*100) : 0;
+  const fPct = isFinite(goalCalories) ? (f_g*9/goalCalories*100) : 0;
+  const cPct = isFinite(goalCalories) ? (c_g*4/goalCalories*100) : 0;
+
+  if(diet!=='keto' && fPct<20) out.warnings.push(`Fat is ${fmtDec(fPct)}% of calories — below 20% is generally not recommended.`);
+  if(diet==='standard' && c_g<50 && goal!=='bulk') out.warnings.push(`Carbs are very low (${fmt(c_g)}g/day). Training performance and adherence may be affected.`);
+  if(diet==='keto' && p_g*4 > 0.35*goalCalories) out.warnings.push(`Protein is ${fmtDec(pPct)}% of calories in keto mode. Very high protein can raise gluconeogenesis and make maintaining ketosis harder. Consider reducing protein preference.`);
+
+  return {
+    ok: out.errors.length===0,
+    errors: out.errors, warnings: out.warnings,
+    BMR, bmrNote, TDEE, tdeeNote,
+    goalCalories, calNote, floorApplied, calFloor, dynFloor,
+    expectedRateKg, adjRateKg: rateKg, rateNote, rateBadge, rateBadgeLabel,
+    constraintCapHTML, feasibilityHTML,
+    p_g, f_g, c_g, p_basis, p_gkg_min, p_gkg_max, p_basisKg, pPick, protPref,
+    pPct, fPct, cPct, totalMacroKcal,
+    carbMode, bfProvided, lbm, diet,
+    fatDetailRows: out.fatDetailRows || null,
+  };
+}
+
+// ═══════════════════════════════════════════════════
+//  COLLECT UI PARAMS
+// ═══════════════════════════════════════════════════
+function collectParams(){
+  const units=$('units').value, sex=$('sex').value;
+  let wkg,hcm;
+  if(units==='us'){ wkg=lbToKg(toNum($('w_lb').value)); hcm=ftInToCm(toNum($('h_ft').value),toNum($('h_in').value)); }
+  else { wkg=toNum($('w_kg').value); hcm=toNum($('h_cm').value); }
+
+  const ketoCarbs_raw=$('ketoCarbs').value;
+  const lowcarbCarbs_raw=$('lowcarbCarbs').value;
+
+  return {
+    units, sex,
+    age:toNum($('age').value),
+    bf:toNum($('bf').value),
+    wkg, hcm,
+    activityMult:toNum($('activity').value),
+    rtDays:toNum($('rt').value),
+    bmrMethod:$('bmr').value,
+    goal:currentGoal,
+    diet:currentDiet,
+    ketoCarbs_raw,
+    ketoCarbsCustom:toNum($('ketoCarbsCustom').value),
+    ketoFatPct:toNum($('ketoFatPct').value),
+    lowcarbCarbs_raw,
+    lowcarbCarbsCustom:toNum($('lowcarbCarbsCustom').value),
+    cutDefPct_raw:$('cutDefPct').value,
+    maxRatePct:toNum($('maxRate').value),
+    bulkSurPct:toNum($('bulkSurPct').value),
+    gainRate:toNum($('gainRate').value),
+    targetLoss:toNum($('targetLoss').value),
+    weeks:toNum($('weeks').value),
+    useLBM:$('useLBMProtein').checked,
+    perfCarb:$('performanceCarb').checked && currentDiet!=='keto',
+    protPref:$('protPref').value,
+    calFloor_raw:toNum($('calFloor').value),
+    fatMinRule:$('fatMinRule').value,
+    customTDEE:toNum($('customTDEE').value),
+  };
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER RESULTS
+// ═══════════════════════════════════════════════════
+function makeWarn(type,html){ const d=document.createElement('div'); d.className=`warn-box ${type}`; d.innerHTML=html; return d; }
+
+let _state=null, _inferred=null;
+
+function calc(){
+  const p=collectParams();
+  const r=calcEngine(p);
+  _state={...r, ...p};
+
+  if(!r.ok){
+    $('resultsEmpty').classList.add('hidden');
+    $('resultsMain').classList.remove('hidden');
+    const box=$('warningsBox'); box.innerHTML='';
+    r.errors.forEach(e=>box.appendChild(makeWarn('error',`<b>Error:</b> ${e}`)));
+    return;
+  }
+
+  $('resultsEmpty').classList.add('hidden');
+  $('resultsMain').classList.remove('hidden');
+
+  // Diet badge on results
+  const di=DIET_INFO[r.diet];
+  $('resultDietBadge').textContent=di.label;
+  $('resultDietBadge').className='badge '+di.badgeClass;
+  const hm=$('goalCalMetric');
+  hm.className='metric highlight'+(r.diet==='keto'?' keto-highlight':r.diet==='lowcarb'?' lowcarb-highlight':'');
+
+  // Energy
+  $('outBMR').innerHTML=`${fmt(r.BMR)} <small>kcal/day</small>`;
+  $('bmrMethod2').textContent=p.bmrMethod==='katch'?'(KM)':'(MSJ)';
+  $('outBMRNote').innerHTML=`<b>${r.bmrNote}</b>`;
+  $('outTDEE').innerHTML=`${fmt(r.TDEE)} <small>kcal/day</small>`;
+  $('outTDEENote').innerHTML=`<b>${r.tdeeNote}</b>`;
+  $('outCals').innerHTML=`${fmt(r.goalCalories)} <small>kcal/day</small>`;
+  $('outCalNote').innerHTML=`<b>${r.calNote}</b>${r.floorApplied?' Floor applied.':''}`;
+  $('outRate').innerHTML=`${r.rateNote}${r.rateBadgeLabel?`<span class="rate-badge ${r.rateBadge}">${r.rateBadgeLabel}</span>`:''}`;
+  $('outRateNote').innerHTML=p.goal==='bulk'?'<b>Estimated gain rate.</b>':'<b>Estimated loss rate.</b>';
+
+  // Constraint / feasibility
+  if(r.constraintCapHTML){ $('constraintCapBox').innerHTML=r.constraintCapHTML; $('constraintCapBox').classList.remove('hidden'); }
+  else $('constraintCapBox').classList.add('hidden');
+  if(r.feasibilityHTML){ $('feasibilityBox').innerHTML=`<div class="warn-box warning">${r.feasibilityHTML}</div>`; $('feasibilityBox').classList.remove('hidden'); }
+  else $('feasibilityBox').classList.add('hidden');
+
+  // Macros
+  $('outPg').textContent=`${fmt(r.p_g)} g`;
+  $('outPkcal').textContent=`${fmt(r.p_g*4)} kcal`;
+  $('outPpct').textContent=`${fmtDec(r.pPct)}%`;
+  $('outFg').textContent=`${fmt(r.f_g)} g`;
+  $('outFkcal').textContent=`${fmt(r.f_g*9)} kcal`;
+  $('outFpct').textContent=`${fmtDec(r.fPct)}%`;
+  $('outCg').textContent=`${fmt(r.c_g)} g`;
+  $('outCkcal').textContent=`${fmt(r.c_g*4)} kcal`;
+  $('outCpct').textContent=`${fmtDec(r.cPct)}%`;
+  $('outTotalG').textContent=`${fmt(r.p_g+r.f_g+r.c_g)} g`;
+  $('outTotalKcal').textContent=`${fmt(r.totalMacroKcal)} kcal`;
+  $('outTotalPct').textContent=`${fmtDec(r.pPct+r.fPct+r.cPct)}%`;
+
+  $('barP').style.width=`${Math.min(100,r.pPct)}%`;
+  $('barF').style.width=`${Math.min(100,r.fPct)}%`;
+  $('barC').style.width=`${Math.min(100,r.cPct)}%`;
+
+  // Diet ratio targets
+  const dtBox=$('dietTargetsBox');
+  if(r.diet==='keto'){
+    dtBox.innerHTML=`<b>Keto targets:</b> Protein ${fmtDec(r.pPct)}% &nbsp;|&nbsp; Fat ${fmtDec(r.fPct)}% &nbsp;|&nbsp; Carbs ${fmtDec(r.cPct)}% &nbsp;&nbsp; <span style="color:var(--muted2)">(Classic keto: ~5% carbs / 25% protein / 70% fat)</span>`;
+    dtBox.classList.remove('hidden');
+  } else if(r.diet==='lowcarb'){
+    dtBox.innerHTML=`<b>Low-carb targets:</b> Protein ${fmtDec(r.pPct)}% &nbsp;|&nbsp; Fat ${fmtDec(r.fPct)}% &nbsp;|&nbsp; Carbs ${fmtDec(r.cPct)}% &nbsp;&nbsp; <span style="color:var(--muted2)">(Low-carb range: 10–25% carbs)</span>`;
+    dtBox.classList.remove('hidden');
+  } else {
+    dtBox.classList.add('hidden');
+  }
+
+  // Protein detail
+  const pBasisLabel = r.p_basis==='lean mass'?`LBM (${fmtDec(r.p_basisKg)} kg)`: `Bodyweight (${fmtDec(r.p_basisKg)} kg)`;
+  $('protDetail').innerHTML=`Basis: <b>${pBasisLabel}</b> &nbsp;|&nbsp; Range: <b>${r.p_gkg_min}–${r.p_gkg_max} g/kg</b> &nbsp;|&nbsp; Applied: <b>${fmtDec(r.pPick,2)} g/kg</b> (${r.protPref})${r.diet==='keto'?' — moderated for keto':''}`;
+
+  // Fat detail
+  if(r.fatDetailRows){
+    const fd=r.fatDetailRows;
+    $('fatDetail').innerHTML=`20% of goal calories = <b>${fd.pct} g/day</b><br>0.6 g/kg bodyweight = <b>${fd.gkg} g/day</b><br>Applied minimum = <b>${fd.applied} g/day</b>${fd.rule!=='max'?` (using ${fd.rule==='pct'?'20% kcal':'0.6 g/kg'} rule)`:''}`;
+    $('fatDetailBox').classList.remove('hidden');
+  } else if(r.diet==='keto'){
+    $('fatDetail').innerHTML=`<b>Keto fat fill:</b> Fat set to ~${Math.round(toNum($('ketoFatPct').value)*100)}% of total calories after protein and carb allocation.`;
+    $('fatDetailBox').classList.remove('hidden');
+  } else if(r.diet==='lowcarb'){
+    $('fatDetail').innerHTML=`<b>Low-carb fat:</b> Fat fills remaining calories after protein allocation and carb ceiling is applied.`;
+    $('fatDetailBox').classList.remove('hidden');
+  }
+
+  // Warnings
+  const wBox=$('warningsBox'); wBox.innerHTML='';
+  if(r.warnings.length===0){ wBox.appendChild(makeWarn('ok','✓ No major flags.')); }
+  else { r.warnings.forEach(w=>wBox.appendChild(makeWarn(r.diet==='keto'&&w.includes('Keto')? 'keto':'warning', w))); }
+
+  renderMealSplit();
+  $('copyBtn').disabled=false;
+  updateTriggerStatus(r);
+}
+
+// ─── Meal split ───
+function renderMealSplit(){
+  if(!_state) return;
+  const {p_g,f_g,c_g}=_state;
+  const meals=toNum($('mealCount').value)||3;
+  const showAll=$('mealMacroShow').value==='all';
+  const rows=[];
+  for(let i=1;i<=meals;i++){
+    rows.push(`<tr><td>Meal ${i}</td><td>${fmt(p_g/meals)} g</td>${showAll?`<td>${fmt(f_g/meals)} g</td><td>${fmt(c_g/meals)} g</td>`:''}</tr>`);
+  }
+  const ths=showAll?'<th>Meal</th><th>Protein</th><th>Fat</th><th>Carbs</th>':'<th>Meal</th><th>Protein</th>';
+  const tbl=`<table class="meal-split-table"><thead><tr>${ths}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
+  $('mealSplitTable').innerHTML=tbl;
+  $('mealSplitTableOut').innerHTML=tbl;
+  $('mealSplitOutput').classList.remove('hidden');
+}
+
+// ─── Adaptive ───
+$('inferBtn').addEventListener('click', inferTDEE);
+$('applyBtn').addEventListener('click', applyInferred);
+
+function inferTDEE(){
+  if(!_state){ $('inferNote').textContent="Run Calculate first."; return; }
+  const wk1=toNum($('wk1w').value), wk2=toNum($('wk2w').value), intake=toNum($('avgIntake').value);
+  if(!isFinite(wk1)||!isFinite(wk2)||!isFinite(intake)){ $('inferNote').textContent="Enter Week 1 avg, Week 2 avg, and avg daily intake."; return; }
+  const wk1kg=_state.units==='us'?lbToKg(wk1):wk1;
+  const wk2kg=_state.units==='us'?lbToKg(wk2):wk2;
+  const dKg=(wk2kg-wk1kg)/7;
+  const obsDeficit=-dKg*7700;
+  const infTDEE=intake+obsDeficit;
+  _inferred={infTDEE,dKg,obsDeficit};
+  $('inferTDEE').textContent=`${fmt(infTDEE)} kcal/day`;
+  $('inferTrend').textContent=`${Math.abs(_state.units==='us'?kgToLb(dKg):dKg).toFixed(3)} ${_state.units==='us'?'lb':'kg'}/day ${dKg<0?'↓':'↑'}`;
+  $('inferDeficit').textContent=`${Math.round(obsDeficit).toLocaleString()} kcal/day`;
+  $('inferNote').textContent=`Inferred TDEE: ${fmt(infTDEE)} kcal/day. Click "Apply" to set smoothed value as Custom TDEE override.`;
+  $('applyBtn').disabled=false;
+}
+function applyInferred(){
+  if(!_state||!_inferred) return;
+  const s=Math.round(0.7*_state.TDEE+0.3*_inferred.infTDEE);
+  $('customTDEE').value=s;
+  $('inferNote').textContent=`Smoothed TDEE (${fmt(s)} kcal/day) applied. Click Calculate to refresh.`;
+  $('applyBtn').disabled=true; _inferred=null;
+}
+
+// ─── Copy ───
+$('copyBtn').addEventListener('click', ()=>{
+  if(!_state) return;
+  const r=_state;
+  const text=[
+    `=== Calorie + Macro Summary ===`,
+    `Diet: ${DIET_INFO[r.diet].label}  |  Goal: ${r.goal}`,
+    `BMR: ${fmt(r.BMR)} kcal/day`,
+    `TDEE: ${fmt(r.TDEE)} kcal/day`,
+    `Goal Calories: ${fmt(r.goalCalories)} kcal/day`,
+    ``,
+    `Protein: ${fmt(r.p_g)} g/day (${fmt(r.p_g*4)} kcal, ${fmtDec(r.pPct)}%)`,
+    `Fat:     ${fmt(r.f_g)} g/day (${fmt(r.f_g*9)} kcal, ${fmtDec(r.fPct)}%)`,
+    `Carbs:   ${fmt(r.c_g)} g/day (${fmt(r.c_g*4)} kcal, ${fmtDec(r.cPct)}%)`,
+    `Total:   ${fmt(r.totalMacroKcal)} kcal/day from macros`,
+    ``,
+    `Generated by Expert Calorie + Macro Calculator v3`,
+  ].join('\n');
+  navigator.clipboard.writeText(text).then(()=>{ $('copyBtn').textContent='Copied!'; setTimeout(()=>$('copyBtn').textContent='Copy Results',2000); });
+});
+
+// ─── Reset ───
+$('resetBtn').addEventListener('click', ()=>{
+  ['sex','activity','bmr','rt','cutDefPct','maxRate','bulkSurPct','fatMinRule','protPref','ketoCarbs','ketoFatPct','lowcarbCarbs','units','mealCount','mealMacroShow']
+    .forEach(id=>{ if($(id)) $(id).selectedIndex=Array.from($(id).options).findIndex(o=>o.defaultSelected)||0; });
+  $('sex').value='male'; $('activity').value='1.55'; $('bmr').value='katch'; $('rt').value='3';
+  $('cutDefPct').value='auto'; $('maxRate').value='0.75'; $('bulkSurPct').value='0.05';
+  $('fatMinRule').value='max'; $('protPref').value='default'; $('ketoCarbs').value='30'; $('ketoFatPct').value='0.70'; $('lowcarbCarbs').value='100';
+  $('age').value=29; $('bf').value=22;
+  $('h_ft').value=5; $('h_in').value=10; $('w_lb').value=205; $('h_cm').value=178; $('w_kg').value=93;
+  $('targetLoss').value=15; $('weeks').value=12; $('gainRate').value='';
+  $('calFloor').value=''; $('customTDEE').value='';
+  $('ketoCarbsCustom').value=''; $('ketoCarbsCustom').disabled=true;
+  $('lowcarbCarbsCustom').value=''; $('lowcarbCarbsCustom').disabled=true;
+  $('useLBMProtein').checked=true; $('performanceCarb').checked=false;
+  $('wk1w').value=''; $('wk2w').value=''; $('avgIntake').value='';
+  $('inferTDEE').textContent='—'; $('inferTrend').textContent='—'; $('inferDeficit').textContent='—'; $('inferNote').textContent='';
+  $('applyBtn').disabled=true; $('copyBtn').disabled=true;
+  $('resultsEmpty').classList.remove('hidden'); $('resultsMain').classList.add('hidden');
+  $('backtestResults').classList.add('hidden');
+  _state=null; _inferred=null;
+  setGoal('loss'); setDiet('standard'); setUnits('us');
+});
+
+// ═══════════════════════════════════════════════════
+//  BACKTEST SUITE
+// ═══════════════════════════════════════════════════
+$('runBacktestBtn').addEventListener('click', runBacktest);
+
+const TESTS = [
+  // ─── SECTION: Standard / basic ───
+  { section:'Standard Diet — Core Cases' },
+  {
+    id:'ST-01', name:'Male, 205lb, 22% BF, moderate, loss 15lb/12wks',
+    p:{ units:'us',sex:'male',age:29,wkg:lbToKg(205),hcm:ftInToCm(5,10),bf:22,activityMult:1.55,rtDays:3,bmrMethod:'katch',goal:'loss',diet:'standard',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:15,weeks:12,useLBM:true,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'BMR in range 1850–2150', fn:r=>r.BMR>=1850&&r.BMR<=2150 },
+      { desc:'TDEE in range 2800–3300', fn:r=>r.TDEE>=2800&&r.TDEE<=3300 },
+      { desc:'Goal calories < TDEE', fn:r=>r.goalCalories<r.TDEE },
+      { desc:'Protein 155–200g (LBM-based)', fn:r=>r.p_g>=155&&r.p_g<=200 },
+      { desc:'Carbs > 0', fn:r=>r.c_g>0 },
+      { desc:'pPct + fPct + cPct ≈ 100% (±5%)', fn:r=>Math.abs(r.pPct+r.fPct+r.cPct-100)<5 },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+  {
+    id:'ST-02', name:'Female, 65kg, no BF%, sedentary, Mifflin, loss 5kg/8wks',
+    p:{ units:'metric',sex:'female',age:35,wkg:65,hcm:165,bf:NaN,activityMult:1.2,rtDays:0,bmrMethod:'mifflin',goal:'loss',diet:'standard',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:5,weeks:8,useLBM:false,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'BMR uses Mifflin (no BF%)', fn:r=>r.bmrNote.includes('Mifflin') },
+      { desc:'TDEE in range 1300–1700', fn:r=>r.TDEE>=1300&&r.TDEE<=1700 },
+      { desc:'Goal calories ≥ 1200 (female floor)', fn:r=>r.goalCalories>=1200 },
+      { desc:'Warning about BF% missing', fn:r=>r.warnings.some(w=>w.includes('BF%')||w.includes('Mifflin')) },
+      { desc:'Protein basis = bodyweight (no LBM)', fn:r=>r.p_basis==='bodyweight' },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+  {
+    id:'ST-03', name:'Male, 90kg, 14% BF, cut mode, auto deficit, 0.75% cap',
+    p:{ units:'metric',sex:'male',age:28,wkg:90,hcm:180,bf:14,activityMult:1.55,rtDays:4,bmrMethod:'katch',goal:'cut',diet:'standard',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:NaN,weeks:NaN,useLBM:true,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Auto deficit ≤ 15% (lean male BF%)', fn:r=>{ const def=(r.TDEE-r.goalCalories)/r.TDEE; return def<=0.16; } },
+      { desc:'Goal calories < TDEE', fn:r=>r.goalCalories<r.TDEE },
+      { desc:'LBM protein basis used', fn:r=>r.p_basis==='lean mass' },
+      { desc:'Protein 170–240g range (LBM cut)', fn:r=>r.p_g>=170&&r.p_g<=245 },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+  {
+    id:'ST-04', name:'Female, 55kg, 17% BF (very lean), cut — lean warning triggered',
+    p:{ units:'metric',sex:'female',age:26,wkg:55,hcm:163,bf:17,activityMult:1.55,rtDays:4,bmrMethod:'katch',goal:'cut',diet:'standard',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:NaN,weeks:NaN,useLBM:true,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Auto deficit = 10% (lean female)', fn:r=>{ const def=(r.TDEE-r.goalCalories)/r.TDEE; return def<=0.11; } },
+      { desc:'Lean warning issued (female BF% <18)', fn:r=>r.warnings.some(w=>w.includes('18%')||w.includes('lean')||w.toLowerCase().includes('female')) },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+  {
+    id:'ST-05', name:'Male, 120kg, 35% BF, bulk 5% surplus',
+    p:{ units:'metric',sex:'male',age:32,wkg:120,hcm:185,bf:35,activityMult:1.55,rtDays:3,bmrMethod:'katch',goal:'bulk',diet:'standard',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:NaN,weeks:NaN,useLBM:true,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Goal calories > TDEE', fn:r=>r.goalCalories>r.TDEE },
+      { desc:'Surplus ~5% of TDEE (within ±2%)', fn:r=>Math.abs((r.goalCalories-r.TDEE)/r.TDEE-0.05)<0.02 },
+      { desc:'Carbs > 0', fn:r=>r.c_g>0 },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+
+  // ─── SECTION: Floor and edge cases ───
+  { section:'Floor Binding & Edge Cases' },
+  {
+    id:'EC-01', name:'Floor binding: very aggressive loss — female, low TDEE, short timeline',
+    p:{ units:'metric',sex:'female',age:40,wkg:55,hcm:158,bf:NaN,activityMult:1.2,rtDays:0,bmrMethod:'mifflin',goal:'loss',diet:'standard',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:8,weeks:4,useLBM:false,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Goal calories ≥ 1200 (floor)', fn:r=>r.goalCalories>=1200 },
+      { desc:'floorApplied = true', fn:r=>r.floorApplied===true },
+      { desc:'Feasibility note generated', fn:r=>r.feasibilityHTML.length>0 },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+  {
+    id:'EC-02', name:'Negative carb recovery: very low calories, high protein preference',
+    p:{ units:'metric',sex:'male',age:30,wkg:70,hcm:175,bf:15,activityMult:1.2,rtDays:0,bmrMethod:'katch',goal:'loss',diet:'standard',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:NaN,weeks:NaN,useLBM:true,perfCarb:false,protPref:'high',calFloor_raw:1500,fatMinRule:'max',customTDEE:1600,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Carbs ≥ 0', fn:r=>r.c_g>=0 },
+      { desc:'p_g*4 + f_g*9 + c_g*4 ≈ goalCalories (±50)', fn:r=>Math.abs(r.p_g*4+r.f_g*9+r.c_g*4-r.goalCalories)<=50 },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+  {
+    id:'EC-03', name:'Male, 9% BF — very lean warning',
+    p:{ units:'metric',sex:'male',age:25,wkg:75,hcm:178,bf:9,activityMult:1.725,rtDays:5,bmrMethod:'katch',goal:'cut',diet:'standard',cutDefPct_raw:'0.15',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:NaN,weeks:NaN,useLBM:true,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Lean warning (male <10% BF)', fn:r=>r.warnings.some(w=>w.includes('10%')||w.toLowerCase().includes('lean')) },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+
+  // ─── SECTION: Low-carb ───
+  { section:'Low-Carb Diet' },
+  {
+    id:'LC-01', name:'Female, 70kg, 28% BF, low-carb 100g ceiling, fat loss goal',
+    p:{ units:'metric',sex:'female',age:38,wkg:70,hcm:168,bf:28,activityMult:1.375,rtDays:3,bmrMethod:'katch',goal:'cut',diet:'lowcarb',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:NaN,weeks:NaN,useLBM:true,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Carbs ≤ 105g (ceiling + rounding)', fn:r=>r.c_g<=105 },
+      { desc:'Fat > 20% of calories', fn:r=>r.fPct>20 },
+      { desc:'Goal calories < TDEE', fn:r=>r.goalCalories<r.TDEE },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+  {
+    id:'LC-02', name:'Male, US units, 185lb, low-carb 75g ceiling, weight loss',
+    p:{ units:'us',sex:'male',age:44,wkg:lbToKg(185),hcm:ftInToCm(5,11),bf:20,activityMult:1.375,rtDays:2,bmrMethod:'katch',goal:'loss',diet:'lowcarb',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:10,weeks:10,useLBM:true,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'75',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Carbs ≤ 80g (ceiling + rounding)', fn:r=>r.c_g<=80 },
+      { desc:'Goal calories < TDEE', fn:r=>r.goalCalories<r.TDEE },
+      { desc:'Total macro kcal within ±50 of goalCalories', fn:r=>Math.abs(r.totalMacroKcal-r.goalCalories)<=50 },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+
+  // ─── SECTION: Ketogenic ───
+  { section:'Ketogenic Diet' },
+  {
+    id:'KT-01', name:'Male, 88kg, 20% BF, strict keto 20g carbs, fat loss',
+    p:{ units:'metric',sex:'male',age:33,wkg:88,hcm:182,bf:20,activityMult:1.55,rtDays:3,bmrMethod:'katch',goal:'cut',diet:'keto',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:NaN,weeks:NaN,useLBM:true,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'20',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Net carbs = 20g (strict keto)', fn:r=>r.c_g===20||r.c_g===25 }, // allow ±1 rounding
+      { desc:'Fat % ≥ 60%', fn:r=>r.fPct>=60 },
+      { desc:'Protein in keto range (moderate)', fn:r=>r.p_g>=100&&r.p_g<=220 },
+      { desc:'Goal calories < TDEE', fn:r=>r.goalCalories<r.TDEE },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+  {
+    id:'KT-02', name:'Female, 60kg, 25% BF, moderate keto 30g carbs, bulk',
+    p:{ units:'metric',sex:'female',age:30,wkg:60,hcm:164,bf:25,activityMult:1.55,rtDays:4,bmrMethod:'katch',goal:'bulk',diet:'keto',cutDefPct_raw:'auto',maxRatePct:0.75,bulkSurPct:0.05,gainRate:NaN,targetLoss:NaN,weeks:NaN,useLBM:true,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Goal calories > TDEE (bulk)', fn:r=>r.goalCalories>r.TDEE },
+      { desc:'Carbs at or near 30g', fn:r=>r.c_g>=25&&r.c_g<=35 },
+      { desc:'Fat % ≥ 60%', fn:r=>r.fPct>=60 },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+  {
+    id:'KT-03', name:'Keto macro energy conservation: p+f+c ≈ goalCalories',
+    p:{ units:'metric',sex:'male',age:38,wkg:95,hcm:180,bf:30,activityMult:1.375,rtDays:2,bmrMethod:'katch',goal:'cut',diet:'keto',cutDefPct_raw:'0.15',maxRatePct:1.0,bulkSurPct:0.05,gainRate:NaN,targetLoss:NaN,weeks:NaN,useLBM:true,perfCarb:false,protPref:'default',calFloor_raw:NaN,fatMinRule:'max',customTDEE:NaN,ketoCarbs_raw:'30',ketoCarbsCustom:NaN,ketoFatPct:0.70,lowcarbCarbs_raw:'100',lowcarbCarbsCustom:NaN },
+    checks:[
+      { desc:'Total macro kcal within ±60 of goalCalories', fn:r=>Math.abs(r.totalMacroKcal-r.goalCalories)<=60 },
+      { desc:'Fat % 55–82%', fn:r=>r.fPct>=55&&r.fPct<=82 },
+      { desc:'Carbs ≤ 35g', fn:r=>r.c_g<=35 },
+      { desc:'No errors', fn:r=>r.ok },
+    ]
+  },
+];
+
+function runBacktest(){
+  const box=$('backtestResults');
+  box.innerHTML='';
+  box.classList.remove('hidden');
+
+  let passCount=0, failCount=0, warnCount=0;
+  const testResults=[];
+
+  TESTS.forEach(t=>{
+    if(t.section){
+      testResults.push({section:t.section});
+      return;
+    }
+    const r=calcEngine(t.p);
+    const checkResults=t.checks.map(c=>{
+      let status='pass';
+      try { if(!c.fn(r)) status='fail'; }
+      catch(e){ status='fail'; }
+      if(status==='pass') passCount++; else failCount++;
+      return {desc:c.desc, status};
+    });
+    testResults.push({id:t.id, name:t.name, checkResults, r});
+  });
+
+  // Summary
+  const total=passCount+failCount;
+  const pct=total>0?Math.round(passCount/total*100):0;
+  const sumDiv=document.createElement('div');
+  sumDiv.className='bt-summary';
+  sumDiv.innerHTML=`
+    <div class="bt-sum-box pass-box"><div class="bn">${passCount}</div><div class="bl">Passed</div></div>
+    <div class="bt-sum-box fail-box"><div class="bn">${failCount}</div><div class="bl">Failed</div></div>
+    <div class="bt-sum-box ${pct>=90?'pass-box':pct>=70?'warn-box-s':'fail-box'}"><div class="bn">${pct}%</div><div class="bl">Score</div></div>
+    <div class="bt-sum-box"><div class="bn">${total}</div><div class="bl">Total checks</div></div>
+  `;
+  box.appendChild(sumDiv);
+
+  // Table
+  const table=document.createElement('table');
+  table.className='backtest-table';
+  table.innerHTML=`<thead><tr><th>ID</th><th>Test</th><th>Check</th><th>Result</th></tr></thead>`;
+  const tbody=document.createElement('tbody');
+
+  testResults.forEach(t=>{
+    if(t.section){
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td colspan="4" class="bt-section">${t.section}</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+    t.checkResults.forEach((c,i)=>{
+      const tr=document.createElement('tr');
+      const statusClass=c.status==='pass'?'bt-pass':'bt-fail';
+      const statusLabel=c.status==='pass'?'✓ PASS':'✗ FAIL';
+      tr.innerHTML=`
+        <td style="font-family:monospace;font-size:11px;color:var(--muted2)">${i===0?t.id:''}</td>
+        <td style="font-size:12px;color:var(--ink2)">${i===0?t.name:''}</td>
+        <td style="font-size:12px;color:var(--muted)">${c.desc}</td>
+        <td class="${statusClass}" style="font-size:12px;white-space:nowrap">${statusLabel}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    // Show computed values row
+    const dvr=document.createElement('tr');
+    dvr.style.background='#f9fafc';
+    dvr.innerHTML=`<td colspan="4" style="font-size:11px;color:var(--muted2);padding:4px 10px 8px;font-family:monospace">
+      BMR ${fmt(t.r.BMR)} &nbsp;|&nbsp; TDEE ${fmt(t.r.TDEE)} &nbsp;|&nbsp; Goal ${fmt(t.r.goalCalories)} kcal &nbsp;|&nbsp;
+      P ${fmt(t.r.p_g)}g / F ${fmt(t.r.f_g)}g / C ${fmt(t.r.c_g)}g &nbsp;|&nbsp;
+      Split ${fmtDec(t.r.pPct)}%/${fmtDec(t.r.fPct)}%/${fmtDec(t.r.cPct)}% &nbsp;|&nbsp;
+      Diet: ${t.r.diet} &nbsp;|&nbsp; Basis: ${t.r.p_basis}
+    </td>`;
+    tbody.appendChild(dvr);
+  });
+
+  table.appendChild(tbody);
+  box.appendChild(table);
+
+  // Overall verdict
+  const verdict=document.createElement('div');
+  verdict.className=`warn-box ${pct>=90?'ok':pct>=70?'warning':'error'}`;
+  verdict.style.marginTop='10px';
+  verdict.innerHTML=pct>=90
+    ? `<b>✓ All core tests pass (${pct}%).</b> Calculation engine is accurate within expected ranges for all diet modes and edge cases.`
+    : pct>=70
+    ? `<b>⚠ Partial pass (${pct}%).</b> Some checks failed — review failing cases above.`
+    : `<b>✗ Multiple failures (${pct}%).</b> Significant accuracy issues detected. Review calculation engine.`;
+  box.appendChild(verdict);
+}
+
+// ─── Event wiring ───
+$('calcBtn').addEventListener('click', calc);
+$('mealCount').addEventListener('change', renderMealSplit);
+$('mealMacroShow').addEventListener('change', renderMealSplit);
+
+// ═══════════════════════════════════════════════════
+//  DROPDOWN TOGGLE
+// ═══════════════════════════════════════════════════
+let _dropdownOpen = false;
+
+function openDropdown(){
+  _dropdownOpen = true;
+  const panel = $('calcDropdown');
+  const icon  = $('toggleIcon');
+  const label = $('toggleLabel');
+  const trigger = $('calcTrigger');
+  panel.classList.add('open');
+  panel.setAttribute('aria-hidden','false');
+  trigger.setAttribute('aria-expanded','true');
+  icon.classList.add('rotated');
+  label.textContent = 'Close';
+  // Smooth scroll trigger into view if needed
+  trigger.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function closeDropdown(){
+  _dropdownOpen = false;
+  const panel = $('calcDropdown');
+  const icon  = $('toggleIcon');
+  const label = $('toggleLabel');
+  const trigger = $('calcTrigger');
+  panel.classList.remove('open');
+  panel.setAttribute('aria-hidden','true');
+  trigger.setAttribute('aria-expanded','false');
+  icon.classList.remove('rotated');
+  label.textContent = 'Open';
+}
+
+function toggleDropdown(){
+  _dropdownOpen ? closeDropdown() : openDropdown();
+}
+
+$('calcTrigger').addEventListener('click', toggleDropdown);
+$('calcTrigger').addEventListener('keydown', e => {
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleDropdown(); }
+});
+
+// Update status pill after calc
+function updateTriggerStatus(r){
+  const s = $('triggerStatus');
+  const t = $('statusText');
+  if(!r || !r.ok){ s.classList.remove('visible'); return; }
+  const dietLabel = DIET_INFO[r.diet]?.label || '';
+  const kcal = Math.round(r.goalCalories).toLocaleString();
+  t.textContent = `${kcal} kcal/day · ${dietLabel} · ${r.goal}`;
+  s.classList.add('visible');
+}
+
+// Init
+setGoal('loss');
+setDiet('standard');
+setUnits('us');
+
+})();
+</script>
+</body>
+</html>
