@@ -1,59 +1,345 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>My Calculators</title>
-  <style>
-    :root{--ink:#111827;--muted:#6b7280;--border:#e5e7eb;--bg:#f8fafc;--card:#ffffff;--primary:#2563eb}
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--ink)
-    }
-    .wrap{max-width:900px;margin:0 auto;padding:24px}
-    h1{margin:0 0 6px 0}
-    p{margin:0 0 18px 0;color:var(--muted);line-height:1.4}
-    .card{
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:16px
-    }
-    .links a{
-      display:block;
-      padding:12px 12px;
-      border:1px solid var(--border);
-      border-radius:12px;
-      background:#fff;
-      color:var(--primary);
-      text-decoration:none;
-      font-weight:600;
-    }
-    .links a:hover{background:#f1f5f9}
-    .hint{margin-top:10px;color:var(--muted);font-size:12px}
-    .mono{
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>My Calculators</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+:root {
+  --ink:      #0f1117;
+  --ink2:     #2d3344;
+  --muted:    #6b7488;
+  --muted2:   #9aa0b4;
+  --on-dark:  #ffffff;
+  --bg:       #f5f6fa;
+  --bg2:      #eef0f7;
+  --card:     #ffffff;
+  --border:   #e2e6f0;
+  --border2:  #cdd3e0;
+  --primary:  #2952c9;
+  --primary2: #1e3fa0;
+  --primary-glow: rgba(41,82,201,.18);
+  --ok:       #1a7a50;
+  --warn:     #b45309;
+  --danger:   #c03010;
+  --violet:   #7c3aed;
+  --cyan:     #0891b2;
+  --emerald:  #059669;
+  --orange:   #ea580c;
+  --shadow:    0 2px 12px rgba(15,17,23,.07), 0 1px 3px rgba(15,17,23,.06);
+  --shadow-md: 0 4px 20px rgba(15,17,23,.10), 0 1px 5px rgba(15,17,23,.07);
+  --shadow-lg: 0 8px 32px rgba(15,17,23,.14), 0 2px 8px rgba(15,17,23,.08);
+  --radius:     14px;
+  --radius-sm:   9px;
+  --radius-pill: 999px;
+  --ease-out: cubic-bezier(.4,0,.2,1);
+  --max-w: 860px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.55;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+
+/* ── Page header ── */
+.page-header {
+  background: var(--ink);
+  color: var(--on-dark);
+  padding: 40px 32px 36px;
+  position: relative;
+  overflow: hidden;
+}
+.page-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 78% 40%, rgba(41,82,201,.42) 0%, transparent 60%),
+    radial-gradient(ellipse at 12% 85%, rgba(124,58,237,.24) 0%, transparent 52%);
+  pointer-events: none;
+}
+.page-header > * { position: relative; }
+.page-header h1 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(26px, 4vw, 38px);
+  font-weight: 400;
+  letter-spacing: -.03em;
+  line-height: 1.1;
+  margin-bottom: 10px;
+}
+.page-header .sub {
+  font-size: 13.5px;
+  color: rgba(255,255,255,.58);
+  max-width: 520px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.header-tags { display: flex; gap: 7px; flex-wrap: wrap; }
+.header-tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.72);
+}
+
+/* ── Wrap ── */
+.wrap {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+/* ── Section title ── */
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--muted2);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Tool cards ── */
+.tool-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+@media (max-width: 580px) { .tool-grid { grid-template-columns: 1fr; } }
+
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 20px 16px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: box-shadow .18s var(--ease-out), transform .15s var(--ease-out), border-color .15s;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+.tool-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--border2);
+  text-decoration: none;
+}
+.tool-card:active { transform: translateY(0); }
+
+/* Colour accent bar on left edge */
+.tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 3px;
+  border-radius: var(--radius) 0 0 var(--radius);
+  background: var(--primary);
+}
+.tool-card.violet::before  { background: var(--violet); }
+.tool-card.cyan::before    { background: var(--cyan); }
+.tool-card.emerald::before { background: var(--emerald); }
+.tool-card.orange::before  { background: var(--orange); }
+
+.tool-icon {
+  font-size: 26px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.tool-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 5px;
+  letter-spacing: -.01em;
+}
+.tool-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  flex: 1;
+}
+.tool-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.tool-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--bg2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.tool-badge.blue   { background: #eff4ff; color: var(--primary);  border-color: #c7d7ff; }
+.tool-badge.violet { background: #f5f3ff; color: var(--violet);   border-color: #ddd6fe; }
+.tool-badge.cyan   { background: #ecfeff; color: var(--cyan);     border-color: #a5f3fc; }
+.tool-badge.green  { background: #f0faf5; color: var(--ok);       border-color: #a7f3d0; }
+.tool-badge.orange { background: #fff7ed; color: var(--orange);   border-color: #fed7aa; }
+.tool-badge.coming { background: var(--bg2); color: var(--muted2); border-color: var(--border); }
+
+.tool-arrow {
+  font-size: 16px;
+  color: var(--muted2);
+  transition: color .15s, transform .15s;
+}
+.tool-card:hover .tool-arrow {
+  color: var(--primary);
+  transform: translateX(3px);
+}
+.tool-card.violet:hover  .tool-arrow { color: var(--violet); }
+.tool-card.cyan:hover    .tool-arrow { color: var(--cyan); }
+.tool-card.emerald:hover .tool-arrow { color: var(--emerald); }
+.tool-card.orange:hover  .tool-arrow { color: var(--orange); }
+
+/* Coming soon state */
+.tool-card.coming-soon {
+  opacity: .6;
+  cursor: default;
+  pointer-events: none;
+}
+.tool-card.coming-soon::before { background: var(--muted2); }
+
+/* ── Info alert ── */
+.alert {
+  border-radius: var(--radius-sm);
+  padding: 11px 15px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  border-left: 3px solid;
+  margin-bottom: 14px;
+}
+.alert.info { background: #f0f4ff; border-color: var(--primary); color: #1a2e6e; }
+.alert b { font-weight: 700; }
+
+/* ── Path hint ── */
+.path-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.path-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 11.5px;
+  color: var(--ink2);
+  font-weight: 500;
+}
+
+/* ── Footer ── */
+.footer-note {
+  font-size: 11px;
+  color: var(--muted2);
+  line-height: 1.5;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>My Calculators</h1>
-    <p>Simple hub page. Click the calculator link below.</p>
 
-    <div class="card">
-      <div class="links">
-        <a href="tools/calorie.html">Calorie + Macro Calculator</a>
+<!-- ── Header ── -->
+<div class="page-header">
+  <h1>My Calculators</h1>
+  <div class="sub">A personal hub of tools for health, finance, and productivity. Each calculator opens in-page — no page reloads.</div>
+  <div class="header-tags">
+    <span class="header-tag">Single-file tools</span>
+    <span class="header-tag">No sign-in required</span>
+    <span class="header-tag">Works offline</span>
+  </div>
+</div>
+
+<!-- ── Content ── -->
+<div class="wrap">
+
+  <!-- Active tools -->
+  <div class="section-title">Tools</div>
+  <div class="tool-grid">
+
+    <!-- Calorie + Macro Calculator -->
+    <a class="tool-card" href="tools/calorie.html">
+      <div class="tool-icon">⚖️</div>
+      <div class="tool-name">Calorie + Macro Calculator</div>
+      <div class="tool-desc">BMR, maintenance calories, and macro targets for weight loss, fat loss, or lean bulking. Supports Standard, Low-Carb, and Ketogenic diet types.</div>
+      <div class="tool-footer">
+        <span class="tool-badge blue">Health</span>
+        <span class="tool-arrow">→</span>
       </div>
+    </a>
 
-      <div class="hint">
-        This link expects your calculator file to be at:
-        <span class="mono">/tools/calorie.html</span>
+    <!-- Placeholder — add your next tool here -->
+    <div class="tool-card coming-soon">
+      <div class="tool-icon">🧮</div>
+      <div class="tool-name">Next Tool</div>
+      <div class="tool-desc">Add your next calculator here. Duplicate one of the .tool-card blocks and update the href, icon, name, and description.</div>
+      <div class="tool-footer">
+        <span class="tool-badge coming">Coming soon</span>
+        <span class="tool-arrow">→</span>
       </div>
     </div>
+
   </div>
+
+  <!-- File path reference -->
+  <div class="section-title">File Locations</div>
+  <div class="alert info">
+    <b>Where to put your files.</b> Each tool link below maps to a path on your server or local folder. Keep all calculator HTML files inside a <code style="font-family:monospace;font-size:11.5px;background:rgba(41,82,201,.1);padding:1px 5px;border-radius:4px">tools/</code> subfolder next to this <code style="font-family:monospace;font-size:11.5px;background:rgba(41,82,201,.1);padding:1px 5px;border-radius:4px">index.html</code>.
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div class="path-row">
+      <span>Calorie + Macro</span>
+      <span>→</span>
+      <span class="path-chip">📄 tools/calorie.html</span>
+    </div>
+    <div class="path-row" style="opacity:.5">
+      <span>Next tool</span>
+      <span>→</span>
+      <span class="path-chip">📄 tools/your-tool.html</span>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Built with the Universal Design System. All tools are single-file HTML — no frameworks, no build step, no dependencies. Add a new tool by copying any existing calculator file into <span style="font-family:monospace">tools/</span> and adding a card above.
+  </div>
+
+</div>
+
 </body>
 </html>
