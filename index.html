@@ -5,51 +5,55 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>My Calculators</title>
   <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;margin:0;background:#f8fafc;color:#111827}
+    :root{--ink:#111827;--muted:#6b7280;--border:#e5e7eb;--bg:#f8fafc;--card:#ffffff;--primary:#2563eb}
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink)
+    }
     .wrap{max-width:900px;margin:0 auto;padding:24px}
     h1{margin:0 0 6px 0}
-    p{margin:0 0 18px 0;color:#6b7280}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px}
-    label{display:block;font-size:12px;color:#6b7280;margin-bottom:6px}
-    select{width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:12px;font-size:14px}
-    button{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid #e5e7eb;background:#2563eb;color:#fff;cursor:pointer}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    .links{margin-top:14px}
-    .links a{display:block;padding:8px 0;color:#2563eb;text-decoration:none}
-    .links a:hover{text-decoration:underline}
+    p{margin:0 0 18px 0;color:var(--muted);line-height:1.4}
+    .card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px
+    }
+    .links a{
+      display:block;
+      padding:12px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#fff;
+      color:var(--primary);
+      text-decoration:none;
+      font-weight:600;
+    }
+    .links a:hover{background:#f1f5f9}
+    .hint{margin-top:10px;color:var(--muted);font-size:12px}
+    .mono{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>My Calculators</h1>
-    <p>Select a calculator from the dropdown.</p>
+    <p>Simple hub page. Click the calculator link below.</p>
 
     <div class="card">
-      <label for="calc">Choose a calculator</label>
-      <select id="calc">
-        <option value="">— Select —</option>
-        <option value="tools/calorie.html">Calorie + Macro Calculator</option>
-      </select>
-
-      <button id="openBtn" disabled>Open</button>
-
       <div class="links">
         <a href="tools/calorie.html">Calorie + Macro Calculator</a>
       </div>
+
+      <div class="hint">
+        This link expects your calculator file to be at:
+        <span class="mono">/tools/calorie.html</span>
+      </div>
     </div>
   </div>
-
-  <script>
-    const sel = document.getElementById('calc');
-    const btn = document.getElementById('openBtn');
-
-    sel.addEventListener('change', () => {
-      btn.disabled = !sel.value;
-    });
-
-    btn.addEventListener('click', () => {
-      if (sel.value) window.location.href = sel.value;
-    });
-  </script>
 </body>
 </html>
