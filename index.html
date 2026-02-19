@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Calculators</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;margin:0;background:#f8fafc;color:#111827}
+    .wrap{max-width:900px;margin:0 auto;padding:24px}
+    h1{margin:0 0 6px 0}
+    p{margin:0 0 18px 0;color:#6b7280}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px}
+    label{display:block;font-size:12px;color:#6b7280;margin-bottom:6px}
+    select{width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:12px;font-size:14px}
+    button{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid #e5e7eb;background:#2563eb;color:#fff;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .links{margin-top:14px}
+    .links a{display:block;padding:8px 0;color:#2563eb;text-decoration:none}
+    .links a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>My Calculators</h1>
+    <p>Select a calculator from the dropdown.</p>
+
+    <div class="card">
+      <label for="calc">Choose a calculator</label>
+      <select id="calc">
+        <option value="">— Select —</option>
+        <option value="tools/calorie.html">Calorie + Macro Calculator</option>
+      </select>
+
+      <button id="openBtn" disabled>Open</button>
+
+      <div class="links">
+        <a href="tools/calorie.html">Calorie + Macro Calculator</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sel = document.getElementById('calc');
+    const btn = document.getElementById('openBtn');
+
+    sel.addEventListener('change', () => {
+      btn.disabled = !sel.value;
+    });
+
+    btn.addEventListener('click', () => {
+      if (sel.value) window.location.href = sel.value;
+    });
+  </script>
+</body>
+</html>
